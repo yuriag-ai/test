@@ -1,0 +1,188 @@
+name: Dependency Audit
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  schedule:
+    # Run weekly on Monday at 9:00 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+jobs:
+  detect-language:
+    runs-on: ubuntu-latest
+    outputs:
+      has-node: ${{ steps.detect.outputs.has-node }}
+      has-python: ${{ steps.detect.outputs.has-python }}
+      has-ruby: ${{ steps.detect.outputs.has-ruby }}
+      has-go: ${{ steps.detect.outputs.has-go }}
+      has-rust: ${{ steps.detect.outputs.has-rust }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detect project types
+        id: detect
+        run: |
+          echo "has-node=$([ -f package.json ] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+          echo "has-python=$([ -f requirements.txt ] || [ -f pyproject.toml ] || [ -f setup.py ] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+          echo "has-ruby=$([ -f Gemfile ] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+          echo "has-go=$([ -f go.mod ] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+          echo "has-rust=$([ -f Cargo.toml ] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+
+  node-audit:
+    needs: detect-language
+    if: needs.detect-language.outputs.has-node == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for outdated packages
+        run: |
+          echo "## Outdated Packages" >> $GITHUB_STEP_SUMMARY
+          npm outdated || echo "See details above" >> $GITHUB_STEP_SUMMARY
+
+      - name: Audit for vulnerabilities
+        run: |
+          echo "## Security Vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          npm audit --audit-level=moderate || true
+          npm audit --json > audit-results.json || true
+
+      - name: Check for unused dependencies
+        run: |
+          npx depcheck --json > depcheck-results.json || true
+          echo "## Unused Dependencies Check" >> $GITHUB_STEP_SUMMARY
+          echo "Results saved to depcheck-results.json" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload audit results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: node-audit-results
+          path: |
+            audit-results.json
+            depcheck-results.json
+
+  python-audit:
+    needs: detect-language
+    if: needs.detect-language.outputs.has-python == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install pip-audit
+        run: pip install pip-audit
+
+      - name: Install dependencies
+        run: |
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          elif [ -f pyproject.toml ]; then
+            pip install .
+          fi
+
+      - name: Check for outdated packages
+        run: |
+          echo "## Outdated Packages" >> $GITHUB_STEP_SUMMARY
+          pip list --outdated
+
+      - name: Audit for vulnerabilities
+        run: |
+          echo "## Security Vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          pip-audit --format json > pip-audit-results.json || true
+          pip-audit || true
+
+      - name: Upload audit results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: python-audit-results
+          path: pip-audit-results.json
+
+  ruby-audit:
+    needs: detect-language
+    if: needs.detect-language.outputs.has-ruby == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.x'
+          bundler-cache: true
+
+      - name: Install bundler-audit
+        run: gem install bundler-audit
+
+      - name: Check for outdated gems
+        run: |
+          echo "## Outdated Gems" >> $GITHUB_STEP_SUMMARY
+          bundle outdated || true
+
+      - name: Audit for vulnerabilities
+        run: |
+          echo "## Security Vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          bundler-audit check --update || true
+
+  go-audit:
+    needs: detect-language
+    if: needs.detect-language.outputs.has-go == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+
+      - name: Check for outdated modules
+        run: |
+          echo "## Outdated Modules" >> $GITHUB_STEP_SUMMARY
+          go list -u -m all || true
+
+      - name: Audit for vulnerabilities
+        run: |
+          echo "## Security Vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./... || true
+
+  rust-audit:
+    needs: detect-language
+    if: needs.detect-language.outputs.has-rust == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
+
+      - name: Check for outdated crates
+        run: |
+          echo "## Outdated Crates" >> $GITHUB_STEP_SUMMARY
+          cargo install cargo-outdated
+          cargo outdated || true
+
+      - name: Audit for vulnerabilities
+        run: |
+          echo "## Security Vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          cargo audit || true
