@@ -6,7 +6,11 @@ import { Home } from './pages/Home';
 import { Auth } from './pages/Auth';
 import { WorkoutGenerator } from './pages/WorkoutGenerator';
 import { WorkoutView } from './pages/WorkoutView';
+import { WorkoutMode } from './pages/WorkoutMode';
 import { Dashboard } from './pages/Dashboard';
+import { Progress } from './pages/Progress';
+import { Community } from './pages/Community';
+import { Premium } from './pages/Premium';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -34,6 +38,8 @@ function AppRoutes() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/premium" element={<Premium />} />
+          <Route path="/comunidade" element={<Community />} />
           <Route
             path="/gerar-treino"
             element={
@@ -51,10 +57,26 @@ function AppRoutes() {
             }
           />
           <Route
+            path="/treino/:id/modo"
+            element={
+              <ProtectedRoute>
+                <WorkoutMode />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/meus-treinos"
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/progresso"
+            element={
+              <ProtectedRoute>
+                <Progress />
               </ProtectedRoute>
             }
           />

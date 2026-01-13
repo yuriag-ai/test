@@ -30,6 +30,12 @@ export function Header() {
           >
             {t('nav.home')}
           </Link>
+          <Link
+            to="/comunidade"
+            className="text-sm font-medium text-texto-principal hover:text-laranja-energia transition-colors"
+          >
+            Comunidade
+          </Link>
           {user && (
             <>
               <Link
@@ -44,8 +50,20 @@ export function Header() {
               >
                 {t('nav.my_workouts')}
               </Link>
+              <Link
+                to="/progresso"
+                className="text-sm font-medium text-texto-principal hover:text-laranja-energia transition-colors"
+              >
+                Progresso
+              </Link>
             </>
           )}
+          <Link
+            to="/premium"
+            className="text-sm font-medium text-laranja-energia hover:text-laranja-hover transition-colors"
+          >
+            ⭐ Premium
+          </Link>
         </div>
 
         {/* Desktop Actions */}

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../co
 import { ChevronLeft, ChevronRight, Loader } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { AIWorkoutService } from '../services/aiWorkoutService';
 
 export function WorkoutGenerator() {
   const { t } = useTranslation('generator');
@@ -49,7 +50,7 @@ export function WorkoutGenerator() {
     setLoading(true);
     try {
       // Save fitness profile
-      const { data: profile } = await supabase
+      await supabase
         .from('fitness_profiles')
         .upsert({
           user_id: user.id,
@@ -63,9 +64,21 @@ export function WorkoutGenerator() {
           preferred_duration: parseInt(formData.duration),
           days_per_week: parseInt(formData.daysPerWeek),
           limitations: formData.limitations,
-        })
-        .select()
-        .single();
+        });
+
+      // Generate workout using AI service
+      const aiExercises = await AIWorkoutService.generateWorkout({
+        age: parseInt(formData.age),
+        gender: formData.gender,
+        weight: parseFloat(formData.weight),
+        height: parseFloat(formData.height),
+        fitnessLevel: formData.fitnessLevel,
+        goal: formData.goal,
+        equipment: formData.equipment,
+        duration: parseInt(formData.duration),
+        daysPerWeek: parseInt(formData.daysPerWeek),
+        limitations: formData.limitations,
+      });
 
       // Create workout
       const { data: workout } = await supabase
@@ -81,47 +94,22 @@ export function WorkoutGenerator() {
         .select()
         .single();
 
-      // Generate sample exercises (in production, this would call an AI API)
-      const sampleExercises = [
-        {
-          workout_id: workout.id,
-          exercise_name: 'Push-ups',
-          sets: 3,
-          reps: 10,
-          rest_seconds: 60,
-          order_index: 0,
-          muscle_groups: ['chest', 'triceps'],
-          difficulty: 'medium',
-          instructions: 'Start in plank position, lower body until chest nearly touches floor, push back up.',
-          beginner_tip: 'Start with knee push-ups if regular push-ups are too difficult.',
-        },
-        {
-          workout_id: workout.id,
-          exercise_name: 'Squats',
-          sets: 3,
-          reps: 15,
-          rest_seconds: 60,
-          order_index: 1,
-          muscle_groups: ['legs', 'glutes'],
-          difficulty: 'easy',
-          instructions: 'Stand with feet shoulder-width apart, lower hips back and down, return to standing.',
-          beginner_tip: 'Keep your weight on your heels and chest up.',
-        },
-        {
-          workout_id: workout.id,
-          exercise_name: 'Plank',
-          duration_seconds: 30,
-          sets: 3,
-          rest_seconds: 45,
-          order_index: 2,
-          muscle_groups: ['core', 'abs'],
-          difficulty: 'medium',
-          instructions: 'Hold a push-up position with forearms on ground, keep body straight.',
-          beginner_tip: 'Start with 15-20 seconds if 30 is too challenging.',
-        },
-      ];
+      // Insert AI-generated exercises
+      const exercisesToInsert = aiExercises.map((ex, index) => ({
+        workout_id: workout.id,
+        exercise_name: ex.name,
+        sets: ex.sets,
+        reps: ex.reps,
+        duration_seconds: ex.duration_seconds,
+        rest_seconds: ex.rest_seconds,
+        order_index: index,
+        muscle_groups: ex.muscle_groups,
+        difficulty: ex.difficulty,
+        instructions: ex.instructions,
+        beginner_tip: ex.beginner_tip,
+      }));
 
-      await supabase.from('workout_exercises').insert(sampleExercises);
+      await supabase.from('workout_exercises').insert(exercisesToInsert);
 
       navigate(`/treino/${workout.id}`);
     } catch (error) {

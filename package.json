@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "date-fns": "^4.1.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.0.0",
+    "react-confetti": "^6.4.0",
+    "recharts": "^3.6.0",
+    "zustand": "^5.0.10"
+  }
+}
