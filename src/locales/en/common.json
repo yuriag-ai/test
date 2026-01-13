@@ -1,0 +1,16 @@
+{
+  "nav": {
+    "home": "Home",
+    "generate": "Create Workout",
+    "my_workouts": "My Workouts",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Sign out",
+    "login": "Sign in",
+    "signup": "Create account"
+  },
+  "footer": {
+    "copyright": "© 2025 TreinaÍ. All rights reserved.",
+    "tagline": "Your workout. Your intelligence."
+  }
+}

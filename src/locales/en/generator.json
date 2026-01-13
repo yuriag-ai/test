@@ -1,0 +1,120 @@
+{
+  "step1": {
+    "title": "Let's get to know each other!",
+    "subtitle": "Tell us a bit about yourself so we can create the ideal workout",
+    "fields": {
+      "age": {
+        "label": "What's your age?",
+        "placeholder": "Ex: 28"
+      },
+      "gender": {
+        "label": "How do you identify?",
+        "options": ["Female", "Male", "Other", "Prefer not to say"]
+      },
+      "weight": {
+        "label": "How much do you weigh?",
+        "placeholder": "Ex: 70"
+      },
+      "height": {
+        "label": "What's your height?",
+        "placeholder": "Ex: 170"
+      }
+    },
+    "encouragement": "💡 This information helps the AI calculate safe workouts for you.",
+    "next_button": "Next step"
+  },
+  "step2": {
+    "title": "What's your current situation?",
+    "subtitle": "Be honest — there's no wrong answer!",
+    "fields": {
+      "fitness_level": {
+        "label": "How would you describe your exercise experience?",
+        "options": [
+          {
+            "value": "beginner",
+            "title": "Complete beginner",
+            "description": "I've never trained or it's been a long time since I exercised"
+          },
+          {
+            "value": "beginner_plus",
+            "title": "Beginner with some experience",
+            "description": "I've tried a few times but couldn't maintain the routine"
+          },
+          {
+            "value": "intermediate",
+            "title": "I have some practice",
+            "description": "I train occasionally but want to improve"
+          }
+        ]
+      },
+      "goal": {
+        "label": "What's your main goal?",
+        "options": [
+          { "value": "lose_weight", "title": "Lose weight", "icon": "Scale" },
+          { "value": "gain_muscle", "title": "Build muscle", "icon": "Dumbbell" },
+          { "value": "health", "title": "Improve my health", "icon": "Heart" },
+          { "value": "energy", "title": "Have more daily energy", "icon": "Zap" },
+          { "value": "flexibility", "title": "Improve flexibility", "icon": "Sparkles" },
+          { "value": "habit", "title": "Build exercise habit", "icon": "Target" }
+        ]
+      }
+    },
+    "encouragement": "🎯 Let's focus on what matters most to you right now!",
+    "back_button": "Back",
+    "next_button": "Continue"
+  },
+  "step3": {
+    "title": "What's your routine like?",
+    "subtitle": "Let's fit the workout into your life, not the other way around",
+    "fields": {
+      "equipment": {
+        "label": "What do you have available to train?",
+        "hint": "Select all options that apply",
+        "options": [
+          { "value": "none", "label": "Nothing — just my body", "icon": "User" },
+          { "value": "dumbbells", "label": "Dumbbells / Weights", "icon": "Dumbbell" },
+          { "value": "resistance_bands", "label": "Resistance bands", "icon": "Minus" },
+          { "value": "pull_up_bar", "label": "Pull-up bar", "icon": "ArrowUp" },
+          { "value": "mat", "label": "Exercise mat", "icon": "Square" },
+          { "value": "full_gym", "label": "Full gym", "icon": "Building" }
+        ]
+      },
+      "duration": {
+        "label": "How much time can you dedicate per workout?",
+        "options": ["15 min", "20 min", "30 min", "45 min", "60 min"],
+        "hint": "For beginners, we recommend starting with 20-30 minutes"
+      },
+      "days_per_week": {
+        "label": "How many days per week can you train?",
+        "options": ["2 days", "3 days", "4 days", "5 days"],
+        "hint": "Starting with 3 days is great for building the habit!"
+      },
+      "limitations": {
+        "label": "Do you have any limitations or injuries we should know about?",
+        "placeholder": "Ex: knee pain, back problems, etc. (optional)",
+        "hint": "This helps us avoid exercises that might hurt you"
+      }
+    },
+    "back_button": "Back",
+    "next_button": "Review my profile"
+  },
+  "step4": {
+    "title": "All good?",
+    "subtitle": "Check your information before generating the workout",
+    "sections": {
+      "personal": "Personal info",
+      "fitness": "Level and goal",
+      "routine": "Routine"
+    },
+    "edit_button": "Edit",
+    "generate_button": "🚀 Generate my personalized workout",
+    "loading_messages": [
+      "Analyzing your profile...",
+      "Selecting the best exercises...",
+      "Calculating ideal sets and reps...",
+      "Building your weekly routine...",
+      "Finalizing your personalized workout..."
+    ],
+    "success_message": "Done! Your workout is ready 💪"
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "hero": {
+    "badge": "✨ Technology that understands you",
+    "title": "Starting to exercise has never been easier",
+    "subtitle": "TreinaÍ creates personalized workouts for you, even if you've never stepped into a gym. Our AI understands your body, your goals, and builds the perfect plan for you to get started.",
+    "cta_primary": "Create my first workout",
+    "cta_secondary": "See how it works",
+    "social_proof": "Over 10,000 people have already started their fitness journey"
+  },
+  "how_it_works": {
+    "section_title": "It's that simple",
+    "section_subtitle": "Three steps to transform your routine",
+    "steps": [
+      {
+        "number": "01",
+        "title": "Tell us about yourself",
+        "description": "Answer a few simple questions about your body, routine, and goals. No fitness knowledge required!"
+      },
+      {
+        "number": "02",
+        "title": "AI builds your workout",
+        "description": "In seconds, our artificial intelligence creates a tailored workout, considering your level and available equipment."
+      },
+      {
+        "number": "03",
+        "title": "Train and evolve",
+        "description": "Follow your personalized workout, adjust whenever you want, and watch your progress happen. Simple as that!"
+      }
+    ]
+  },
+  "for_beginners": {
+    "section_title": "Made for beginners",
+    "section_subtitle": "We know taking the first step is the hardest. That's why TreinaÍ was created with you in mind.",
+    "features": [
+      {
+        "icon": "Heart",
+        "title": "No judgments",
+        "description": "No matter your weight, age, or physical condition. Everyone is welcome here."
+      },
+      {
+        "icon": "Dumbbell",
+        "title": "With or without equipment",
+        "description": "Workouts that work at home, in the park, or at the gym. You choose."
+      },
+      {
+        "icon": "Clock",
+        "title": "Workouts that fit your schedule",
+        "description": "From 15 to 60 minutes. You decide how much time you have."
+      },
+      {
+        "icon": "MessageCircle",
+        "title": "Simple explanations",
+        "description": "Each exercise with clear instructions, no complicated technical terms."
+      },
+      {
+        "icon": "TrendingUp",
+        "title": "Gradual progression",
+        "description": "We start slow and increase the pace as you gain confidence."
+      },
+      {
+        "icon": "Shield",
+        "title": "Safety first",
+        "description": "Workouts designed to prevent injuries, especially for beginners."
+      }
+    ]
+  },
+  "testimonials": {
+    "section_title": "Those who started, recommend it",
+    "items": [
+      {
+        "quote": "I was embarrassed to go to the gym and not know what to do. With TreinaÍ, I started at home and now I feel confident to train anywhere.",
+        "name": "Carla Mendes",
+        "detail": "Started 3 months ago",
+        "avatar_initials": "CM"
+      },
+      {
+        "quote": "I tried several apps, but they all seemed made for people who already work out. TreinaÍ really understands those starting from zero.",
+        "name": "Ricardo Santos",
+        "detail": "Lost 8kg in 4 months",
+        "avatar_initials": "RS"
+      },
+      {
+        "quote": "With two small kids, I don't have time for the gym. TreinaÍ's 20-minute workouts changed my life!",
+        "name": "Amanda Costa",
+        "detail": "Training at home since 2024",
+        "avatar_initials": "AC"
+      }
+    ]
+  },
+  "final_cta": {
+    "title": "Ready to start?",
+    "subtitle": "Your first personalized workout is just one click away. It's free, easy, and made for you.",
+    "button": "Start now — it's free!",
+    "note": "No credit card. No commitment."
+  }
+}

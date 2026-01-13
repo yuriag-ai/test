@@ -1,0 +1,120 @@
+{
+  "step1": {
+    "title": "Vamos nos conhecer!",
+    "subtitle": "Conte um pouco sobre você para criarmos o treino ideal",
+    "fields": {
+      "age": {
+        "label": "Qual sua idade?",
+        "placeholder": "Ex: 28"
+      },
+      "gender": {
+        "label": "Como você se identifica?",
+        "options": ["Feminino", "Masculino", "Outro", "Prefiro não dizer"]
+      },
+      "weight": {
+        "label": "Quanto você pesa?",
+        "placeholder": "Ex: 70"
+      },
+      "height": {
+        "label": "Qual sua altura?",
+        "placeholder": "Ex: 170"
+      }
+    },
+    "encouragement": "💡 Essas informações ajudam a IA a calcular treinos seguros para você.",
+    "next_button": "Próximo passo"
+  },
+  "step2": {
+    "title": "Qual seu momento atual?",
+    "subtitle": "Seja sincero — não existe resposta errada!",
+    "fields": {
+      "fitness_level": {
+        "label": "Como você descreveria sua experiência com exercícios?",
+        "options": [
+          {
+            "value": "beginner",
+            "title": "Iniciante total",
+            "description": "Nunca treinei ou faz muito tempo que não faço exercício"
+          },
+          {
+            "value": "beginner_plus",
+            "title": "Iniciante com alguma experiência",
+            "description": "Já tentei algumas vezes, mas não consegui manter a rotina"
+          },
+          {
+            "value": "intermediate",
+            "title": "Tenho alguma prática",
+            "description": "Treino de vez em quando, mas quero melhorar"
+          }
+        ]
+      },
+      "goal": {
+        "label": "Qual seu principal objetivo?",
+        "options": [
+          { "value": "lose_weight", "title": "Perder peso", "icon": "Scale" },
+          { "value": "gain_muscle", "title": "Ganhar músculos", "icon": "Dumbbell" },
+          { "value": "health", "title": "Melhorar minha saúde", "icon": "Heart" },
+          { "value": "energy", "title": "Ter mais energia no dia a dia", "icon": "Zap" },
+          { "value": "flexibility", "title": "Melhorar flexibilidade", "icon": "Sparkles" },
+          { "value": "habit", "title": "Criar o hábito de exercitar", "icon": "Target" }
+        ]
+      }
+    },
+    "encouragement": "🎯 Vamos focar no que é mais importante pra você agora!",
+    "back_button": "Voltar",
+    "next_button": "Continuar"
+  },
+  "step3": {
+    "title": "Como é sua rotina?",
+    "subtitle": "Vamos encaixar o treino na sua vida, não o contrário",
+    "fields": {
+      "equipment": {
+        "label": "O que você tem disponível para treinar?",
+        "hint": "Selecione todas as opções que se aplicam",
+        "options": [
+          { "value": "none", "label": "Nada — só meu corpo", "icon": "User" },
+          { "value": "dumbbells", "label": "Halteres / Pesos", "icon": "Dumbbell" },
+          { "value": "resistance_bands", "label": "Elásticos / Faixas", "icon": "Minus" },
+          { "value": "pull_up_bar", "label": "Barra de porta", "icon": "ArrowUp" },
+          { "value": "mat", "label": "Colchonete / Tapete", "icon": "Square" },
+          { "value": "full_gym", "label": "Academia completa", "icon": "Building" }
+        ]
+      },
+      "duration": {
+        "label": "Quanto tempo você pode dedicar por treino?",
+        "options": ["15 min", "20 min", "30 min", "45 min", "60 min"],
+        "hint": "Para iniciantes, recomendamos começar com 20-30 minutos"
+      },
+      "days_per_week": {
+        "label": "Quantos dias por semana você consegue treinar?",
+        "options": ["2 dias", "3 dias", "4 dias", "5 dias"],
+        "hint": "Começar com 3 dias é ótimo para criar o hábito!"
+      },
+      "limitations": {
+        "label": "Tem alguma limitação ou lesão que devemos saber?",
+        "placeholder": "Ex: dor no joelho, problema na coluna, etc. (opcional)",
+        "hint": "Isso nos ajuda a evitar exercícios que possam te machucar"
+      }
+    },
+    "back_button": "Voltar",
+    "next_button": "Revisar meu perfil"
+  },
+  "step4": {
+    "title": "Tudo certo?",
+    "subtitle": "Confira suas informações antes de gerar o treino",
+    "sections": {
+      "personal": "Dados pessoais",
+      "fitness": "Nível e objetivo",
+      "routine": "Rotina"
+    },
+    "edit_button": "Editar",
+    "generate_button": "🚀 Gerar meu treino personalizado",
+    "loading_messages": [
+      "Analisando seu perfil...",
+      "Selecionando os melhores exercícios...",
+      "Calculando séries e repetições ideais...",
+      "Montando sua rotina semanal...",
+      "Finalizando seu treino personalizado..."
+    ],
+    "success_message": "Pronto! Seu treino está preparado 💪"
+  }
+}

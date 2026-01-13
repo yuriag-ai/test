@@ -1,0 +1,83 @@
+{
+  "workout_header": {
+    "default_name": "My First Workout",
+    "name_placeholder": "Workout name",
+    "tags": {
+      "goal": "Goal",
+      "level": "Level",
+      "duration": "Duration",
+      "equipment": "Equipment"
+    },
+    "actions": {
+      "save": "Save changes",
+      "regenerate": "Generate new workout",
+      "start": "▶️ Start workout"
+    }
+  },
+  "workout_summary": {
+    "total_exercises": "exercises",
+    "estimated_time": "estimated minutes",
+    "muscle_groups": "Muscle groups",
+    "calories_estimate": "calories (estimated)"
+  },
+  "exercise_card": {
+    "sets": "sets",
+    "reps": "reps",
+    "duration": "seconds",
+    "rest": "rest",
+    "target_muscles": "Target muscles",
+    "how_to_do": "How to do it",
+    "beginner_tip": "💡 Beginner tip",
+    "swap_exercise": "Swap exercise",
+    "delete": "Remove",
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Moderate",
+      "hard": "Challenging"
+    }
+  },
+  "exercise_modal": {
+    "title_add": "Add exercise",
+    "title_swap": "Swap exercise",
+    "search_placeholder": "Search exercise...",
+    "filters": {
+      "all": "All",
+      "muscle_group": "Muscle group",
+      "equipment": "Equipment",
+      "difficulty": "Difficulty"
+    },
+    "beginner_friendly": "Beginner friendly",
+    "add_button": "Add",
+    "swap_button": "Swap"
+  },
+  "workout_actions": {
+    "download_pdf": "Download PDF",
+    "share": "Share",
+    "delete": "Delete workout",
+    "delete_confirm": "Are you sure you want to delete this workout?"
+  },
+  "dashboard": {
+    "welcome": "Hello, {{name}}! 👋",
+    "welcome_subtitle": "Ready to train today?",
+    "stats": {
+      "workouts_created": "Workouts created",
+      "total_exercises": "Saved exercises",
+      "current_streak": "Day streak"
+    },
+    "empty_state": {
+      "title": "You don't have any workouts yet",
+      "subtitle": "Create your first personalized workout and start your journey!",
+      "button": "Create my first workout"
+    },
+    "workout_card": {
+      "created_at": "Created on",
+      "last_done": "Last workout",
+      "exercises_count": "exercises",
+      "duration": "min",
+      "view": "View workout",
+      "start": "Start",
+      "delete": "Delete"
+    },
+    "create_new": "+ Create new workout"
+  }
+}

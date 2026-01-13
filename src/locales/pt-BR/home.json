@@ -1,0 +1,96 @@
+{
+  "hero": {
+    "badge": "✨ Tecnologia que entende você",
+    "title": "Começar a treinar nunca foi tão fácil",
+    "subtitle": "A TreinaÍ cria treinos personalizados para você, mesmo que nunca tenha pisado numa academia. Nossa IA entende seu corpo, seus objetivos e monta o plano perfeito para você começar.",
+    "cta_primary": "Criar meu primeiro treino",
+    "cta_secondary": "Ver como funciona",
+    "social_proof": "Mais de 10.000 pessoas já começaram sua jornada fitness"
+  },
+  "how_it_works": {
+    "section_title": "Simples assim",
+    "section_subtitle": "Três passos para transformar sua rotina",
+    "steps": [
+      {
+        "number": "01",
+        "title": "Conta pra gente sobre você",
+        "description": "Responda algumas perguntas simples sobre seu corpo, rotina e objetivos. Não precisa saber nada de exercício!"
+      },
+      {
+        "number": "02",
+        "title": "A IA monta seu treino",
+        "description": "Em segundos, nossa inteligência artificial cria um treino sob medida, considerando seu nível e equipamentos disponíveis."
+      },
+      {
+        "number": "03",
+        "title": "Treine e evolua",
+        "description": "Siga seu treino personalizado, ajuste quando quiser e veja seu progresso acontecer. Simples assim!"
+      }
+    ]
+  },
+  "for_beginners": {
+    "section_title": "Feito para quem está começando",
+    "section_subtitle": "Sabemos que dar o primeiro passo é o mais difícil. Por isso, a TreinaÍ foi criada pensando em você.",
+    "features": [
+      {
+        "icon": "Heart",
+        "title": "Sem julgamentos",
+        "description": "Não importa seu peso, idade ou condição física. Aqui todo mundo é bem-vindo."
+      },
+      {
+        "icon": "Dumbbell",
+        "title": "Com ou sem equipamento",
+        "description": "Treinos que funcionam na sua casa, no parque ou na academia. Você escolhe."
+      },
+      {
+        "icon": "Clock",
+        "title": "Treinos que cabem na sua rotina",
+        "description": "De 15 a 60 minutos. Você decide quanto tempo tem disponível."
+      },
+      {
+        "icon": "MessageCircle",
+        "title": "Explicações simples",
+        "description": "Cada exercício com instruções claras, sem termos técnicos complicados."
+      },
+      {
+        "icon": "TrendingUp",
+        "title": "Evolução gradual",
+        "description": "Começamos devagar e aumentamos o ritmo conforme você ganha confiança."
+      },
+      {
+        "icon": "Shield",
+        "title": "Segurança em primeiro lugar",
+        "description": "Treinos pensados para evitar lesões, especialmente para quem está começando."
+      }
+    ]
+  },
+  "testimonials": {
+    "section_title": "Quem começou, recomenda",
+    "items": [
+      {
+        "quote": "Eu tinha vergonha de ir na academia e não saber o que fazer. Com a TreinaÍ, comecei em casa e hoje me sinto confiante pra treinar em qualquer lugar.",
+        "name": "Carla Mendes",
+        "detail": "Começou há 3 meses",
+        "avatar_initials": "CM"
+      },
+      {
+        "quote": "Tentei vários apps, mas todos pareciam feitos pra quem já malha. A TreinaÍ realmente entende quem tá começando do zero.",
+        "name": "Ricardo Santos",
+        "detail": "Perdeu 8kg em 4 meses",
+        "avatar_initials": "RS"
+      },
+      {
+        "quote": "Com dois filhos pequenos, não tenho tempo pra academia. Os treinos de 20 minutos da TreinaÍ mudaram minha vida!",
+        "name": "Amanda Costa",
+        "detail": "Treina em casa desde 2024",
+        "avatar_initials": "AC"
+      }
+    ]
+  },
+  "final_cta": {
+    "title": "Pronto pra começar?",
+    "subtitle": "Seu primeiro treino personalizado está a um clique de distância. É grátis, é fácil e foi feito pra você.",
+    "button": "Começar agora — é grátis!",
+    "note": "Sem cartão de crédito. Sem compromisso."
+  }
+}

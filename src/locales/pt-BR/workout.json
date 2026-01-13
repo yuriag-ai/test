@@ -1,0 +1,83 @@
+{
+  "workout_header": {
+    "default_name": "Meu Primeiro Treino",
+    "name_placeholder": "Nome do treino",
+    "tags": {
+      "goal": "Objetivo",
+      "level": "Nível",
+      "duration": "Duração",
+      "equipment": "Equipamento"
+    },
+    "actions": {
+      "save": "Salvar alterações",
+      "regenerate": "Gerar novo treino",
+      "start": "▶️ Iniciar treino"
+    }
+  },
+  "workout_summary": {
+    "total_exercises": "exercícios",
+    "estimated_time": "minutos estimados",
+    "muscle_groups": "Músculos trabalhados",
+    "calories_estimate": "calorias (estimado)"
+  },
+  "exercise_card": {
+    "sets": "séries",
+    "reps": "repetições",
+    "duration": "segundos",
+    "rest": "descanso",
+    "target_muscles": "Músculos alvo",
+    "how_to_do": "Como fazer",
+    "beginner_tip": "💡 Dica para iniciantes",
+    "swap_exercise": "Trocar exercício",
+    "delete": "Remover",
+    "difficulty": {
+      "easy": "Fácil",
+      "medium": "Moderado",
+      "hard": "Desafiador"
+    }
+  },
+  "exercise_modal": {
+    "title_add": "Adicionar exercício",
+    "title_swap": "Trocar exercício",
+    "search_placeholder": "Buscar exercício...",
+    "filters": {
+      "all": "Todos",
+      "muscle_group": "Grupo muscular",
+      "equipment": "Equipamento",
+      "difficulty": "Dificuldade"
+    },
+    "beginner_friendly": "Ideal para iniciantes",
+    "add_button": "Adicionar",
+    "swap_button": "Trocar"
+  },
+  "workout_actions": {
+    "download_pdf": "Baixar em PDF",
+    "share": "Compartilhar",
+    "delete": "Excluir treino",
+    "delete_confirm": "Tem certeza que deseja excluir este treino?"
+  },
+  "dashboard": {
+    "welcome": "Olá, {{name}}! 👋",
+    "welcome_subtitle": "Pronto pra treinar hoje?",
+    "stats": {
+      "workouts_created": "Treinos criados",
+      "total_exercises": "Exercícios salvos",
+      "current_streak": "Dias seguidos"
+    },
+    "empty_state": {
+      "title": "Você ainda não tem treinos",
+      "subtitle": "Crie seu primeiro treino personalizado e comece sua jornada!",
+      "button": "Criar meu primeiro treino"
+    },
+    "workout_card": {
+      "created_at": "Criado em",
+      "last_done": "Último treino",
+      "exercises_count": "exercícios",
+      "duration": "min",
+      "view": "Ver treino",
+      "start": "Iniciar",
+      "delete": "Excluir"
+    },
+    "create_new": "+ Criar novo treino"
+  }
+}

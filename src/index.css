@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@700;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Cores Primárias */
+  --laranja-energia: #FF6B35;
+  --laranja-hover: #E55A2B;
+  --navy-confianca: #1A1A2E;
+  --navy-light: #2D2D44;
+
+  /* Cor de Acento */
+  --verde-progresso: #16DB93;
+  --verde-hover: #12B577;
+
+  /* Neutros */
+  --cinza-claro: #F7F7F7;
+  --cinza-medio: #E0E0E0;
+  --texto-principal: #2D2D2D;
+  --texto-secundario: #666666;
+
+  /* Backgrounds */
+  --bg-light: #FFFFFF;
+  --bg-section: #FFF9F7;
+  --bg-dark: #1A1A2E;
+}
+
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+
+  body {
+    @apply bg-bg-light text-texto-principal font-inter antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-montserrat font-bold;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cinza-claro);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--cinza-medio);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--texto-secundario);
+}

@@ -1,0 +1,16 @@
+{
+  "nav": {
+    "home": "Início",
+    "generate": "Criar Treino",
+    "my_workouts": "Meus Treinos",
+    "profile": "Perfil",
+    "settings": "Configurações",
+    "logout": "Sair",
+    "login": "Entrar",
+    "signup": "Criar conta"
+  },
+  "footer": {
+    "copyright": "© 2025 TreinaÍ. Todos os direitos reservados.",
+    "tagline": "Seu treino. Sua inteligência."
+  }
+}
