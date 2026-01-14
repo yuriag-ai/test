@@ -6,7 +6,7 @@ export class PDFExportService {
   static async exportWorkoutToPDF(
     workout: Workout,
     exercises: Exercise[],
-    userNa me: string
+    userName: string
   ): Promise<void> {
     const pdf = new jsPDF();
     const pageWidth = pdf.internal.pageSize.getWidth();
