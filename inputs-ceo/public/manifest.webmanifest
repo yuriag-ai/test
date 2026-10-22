@@ -1,0 +1,16 @@
+{
+  "name": "Inputs CEO · Arezzo&CO",
+  "short_name": "Inputs CEO",
+  "description": "Captura de reuniões, atas executivas e planos de ação do escritório do CEO.",
+  "lang": "pt-BR",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FAF8F5",
+  "theme_color": "#FAF8F5",
+  "icons": [
+    { "src": "/icone-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icone-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icone.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

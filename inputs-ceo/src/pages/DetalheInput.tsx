@@ -1,0 +1,369 @@
+import clsx from 'clsx'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { Camera, ExternalLink, FileText, MessageSquarePlus, Paperclip, Quote, Share2, Trash2 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { AreaTexto, Cabecalho, CampoLista, CampoPessoas, SeletorStatus, useAviso } from '../components/ui'
+import { useListas } from '../hooks/useDados'
+import { adicionarAnexos, adicionarNota, atualizarInput, db, excluirInput } from '../lib/db'
+import { compartilharTexto } from '../lib/exportar'
+import { ORIGENS, PRIORIDADES, ROTULO_STATUS } from '../lib/rotulos'
+import type { Anexo, Input, Origem, Prioridade } from '../lib/types'
+import { formatarData, formatarDataHora, formatarTamanho } from '../lib/util'
+
+export default function DetalheInput() {
+  const { id = '' } = useParams()
+  const navigate = useNavigate()
+  const avisar = useAviso()
+  const input = useLiveQuery(() => db.inputs.get(id).then((i) => i ?? null), [id])
+  const reuniao = useLiveQuery(() => (input?.reuniaoId ? db.reunioes.get(input.reuniaoId) : undefined), [input?.reuniaoId])
+  const { areas, marcas, nomes } = useListas()
+
+  if (input === undefined) return <Cabecalho titulo="" voltar />
+  if (input === null) {
+    return (
+      <>
+        <Cabecalho titulo="Input" voltar="/" />
+        <p className="px-4 py-12 text-center text-sm text-nevoa">Este input não existe mais.</p>
+      </>
+    )
+  }
+
+  const salvar = (mudancas: Partial<Input>) => void atualizarInput(id, mudancas)
+
+  const compartilhar = async () => {
+    const texto = [
+      `#${input.numero} ${input.titulo}`,
+      input.descricao !== input.titulo ? input.descricao : '',
+      `Responsável: ${input.responsaveis.join(', ') || 'a definir'}`,
+      input.prazo ? `Prazo: ${formatarData(input.prazo, true)}` : '',
+      `Status: ${ROTULO_STATUS[input.status]}`,
+    ]
+      .filter(Boolean)
+      .join('\n')
+    if ((await compartilharTexto(input.titulo, texto)) === 'copiado') avisar('Texto copiado')
+  }
+
+  const excluir = async () => {
+    if (!confirm(`Excluir o input #${input.numero}? Os anexos também serão apagados.`)) return
+    await excluirInput(id)
+    avisar('Input excluído')
+    navigate('/', { replace: true })
+  }
+
+  return (
+    <>
+      <Cabecalho
+        voltar
+        titulo={<span className="text-sm font-semibold text-nevoa">Input #{input.numero}</span>}
+        acoes={
+          <>
+            <button aria-label="Compartilhar" className="rounded-full p-2 hover:bg-linho" onClick={compartilhar}>
+              <Share2 size={19} />
+            </button>
+            <button aria-label="Excluir" className="rounded-full p-2 text-bloqueado hover:bg-bloqueado-claro" onClick={excluir}>
+              <Trash2 size={19} />
+            </button>
+          </>
+        }
+      />
+
+      <div className="space-y-6 px-4 pb-8">
+        <TextoEditavel
+          key={`t-${input.id}`}
+          valor={input.titulo}
+          aoSalvar={(titulo) => titulo.trim() && salvar({ titulo: titulo.trim() })}
+          className="w-full resize-none bg-transparent font-serif text-[24px] font-medium leading-tight outline-none"
+          placeholder="Título"
+        />
+
+        <div className="flex flex-wrap items-center gap-2">
+          <SeletorStatus grande status={input.status} aoMudar={(status) => salvar({ status })} />
+          <div className="flex rounded-full border border-borda bg-white p-0.5">
+            {PRIORIDADES.map((p) => (
+              <button
+                key={p.valor}
+                onClick={() => salvar({ prioridade: p.valor as Prioridade })}
+                className={clsx(
+                  'rounded-full px-3 py-1.5 text-xs font-medium',
+                  input.prioridade === p.valor ? (p.valor === 'alta' ? 'bg-bloqueado text-white' : 'bg-tinta text-papel') : 'text-grafite',
+                )}
+              >
+                {p.rotulo}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <section className="cartao space-y-4 p-4">
+          <div>
+            <label className="rotulo">Responsáveis</label>
+            <CampoPessoas valor={input.responsaveis} aoMudar={(responsaveis) => salvar({ responsaveis })} sugestoes={nomes} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="rotulo">Prazo</label>
+              <input type="date" className="campo" value={input.prazo} onChange={(e) => salvar({ prazo: e.target.value })} />
+            </div>
+            <div>
+              <label className="rotulo">Data do input</label>
+              <input
+                type="date"
+                className="campo"
+                value={input.dataInput}
+                onChange={(e) => e.target.value && salvar({ dataInput: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="rotulo">Área</label>
+              <CampoLista valor={input.area} opcoes={areas} aoMudar={(area) => salvar({ area })} />
+            </div>
+            <div>
+              <label className="rotulo">Marca</label>
+              <CampoLista valor={input.marca} opcoes={marcas} aoMudar={(marca) => salvar({ marca })} />
+            </div>
+            <div>
+              <label className="rotulo">Onde foi falado</label>
+              <select className="campo" value={input.origem} onChange={(e) => salvar({ origem: e.target.value as Origem })}>
+                {ORIGENS.map((o) => (
+                  <option key={o.valor} value={o.valor}>
+                    {o.rotulo}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="rotulo">Local</label>
+              <TextoEditavel
+                key={`l-${input.id}`}
+                linha
+                valor={input.local}
+                aoSalvar={(local) => salvar({ local: local.trim() })}
+                className="campo"
+                placeholder="Ex.: Loja Oscar Freire"
+              />
+            </div>
+          </div>
+          {reuniao && (
+            <Link to={`/reunioes/${reuniao.id}`} className="flex items-center gap-2 rounded-xl bg-linho px-3 py-2.5 text-sm">
+              <FileText size={16} className="text-couro" />
+              <span className="flex-1 truncate">
+                Origem: <strong className="font-medium">{reuniao.titulo || 'Reunião'}</strong> · {formatarData(reuniao.data)}
+              </span>
+              <ExternalLink size={14} className="text-nevoa" />
+            </Link>
+          )}
+        </section>
+
+        <section>
+          <label className="rotulo">O que foi pedido</label>
+          <TextoEditavel
+            key={`d-${input.id}`}
+            valor={input.descricao}
+            aoSalvar={(descricao) => salvar({ descricao: descricao.trim() })}
+            className="campo min-h-[96px] leading-relaxed"
+            placeholder="Descrição completa do input"
+          />
+        </section>
+
+        {input.citacao && (
+          <blockquote className="flex gap-2 border-l-2 border-couro pl-3 text-sm italic leading-relaxed text-grafite">
+            <Quote size={14} className="mt-1 shrink-0 text-couro" />
+            {input.citacao}
+          </blockquote>
+        )}
+
+        <section>
+          <label className="rotulo">Contexto</label>
+          <TextoEditavel
+            key={`c-${input.id}`}
+            valor={input.contexto}
+            aoSalvar={(contexto) => salvar({ contexto: contexto.trim() })}
+            className="campo min-h-[72px] leading-relaxed"
+            placeholder="Em que conversa surgiu, por que é importante…"
+          />
+        </section>
+
+        <section>
+          <label className="rotulo">Observações</label>
+          <TextoEditavel
+            key={`o-${input.id}`}
+            valor={input.observacoes}
+            aoSalvar={(observacoes) => salvar({ observacoes: observacoes.trim() })}
+            className="campo min-h-[72px] leading-relaxed"
+            placeholder="Notas internas, links, combinados…"
+          />
+        </section>
+
+        <Anexos inputId={input.id} />
+
+        <Historico input={input} />
+      </div>
+    </>
+  )
+}
+
+function TextoEditavel({
+  valor,
+  aoSalvar,
+  className,
+  placeholder,
+  linha,
+}: {
+  valor: string
+  aoSalvar: (v: string) => void
+  className?: string
+  placeholder?: string
+  linha?: boolean
+}) {
+  const [texto, setTexto] = useState(valor)
+  useEffect(() => setTexto(valor), [valor])
+  const salvar = () => texto !== valor && aoSalvar(texto)
+  if (linha) {
+    return (
+      <input
+        value={texto}
+        onChange={(e) => setTexto(e.target.value)}
+        onBlur={salvar}
+        onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+        className={className}
+        placeholder={placeholder}
+      />
+    )
+  }
+  return (
+    <AreaTexto
+      value={texto}
+      onChange={(e) => setTexto(e.target.value)}
+      onBlur={salvar}
+      className={className}
+      placeholder={placeholder}
+    />
+  )
+}
+
+function Anexos({ inputId }: { inputId: string }) {
+  const anexos = useLiveQuery(() => db.anexos.where('inputId').equals(inputId).sortBy('criadoEm'), [inputId]) ?? []
+  const arquivo = useRef<HTMLInputElement>(null)
+  const camera = useRef<HTMLInputElement>(null)
+  const avisar = useAviso()
+
+  const adicionar = async (lista: FileList | null) => {
+    if (!lista?.length) return
+    await adicionarAnexos(inputId, [...lista])
+    avisar(lista.length === 1 ? 'Anexo adicionado' : `${lista.length} anexos adicionados`)
+  }
+
+  return (
+    <section>
+      <div className="mb-2 flex items-center justify-between">
+        <label className="rotulo mb-0">Anexos {anexos.length > 0 && `(${anexos.length})`}</label>
+        <div className="flex gap-1">
+          <button className="botao-fantasma py-1.5 text-sm" onClick={() => camera.current?.click()}>
+            <Camera size={16} /> Foto
+          </button>
+          <button className="botao-fantasma py-1.5 text-sm" onClick={() => arquivo.current?.click()}>
+            <Paperclip size={16} /> Arquivo
+          </button>
+        </div>
+        <input ref={arquivo} type="file" multiple hidden onChange={(e) => void adicionar(e.target.files).then(() => (e.target.value = ''))} />
+        <input
+          ref={camera}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          hidden
+          onChange={(e) => void adicionar(e.target.files).then(() => (e.target.value = ''))}
+        />
+      </div>
+      {anexos.length === 0 ? (
+        <button
+          onClick={() => arquivo.current?.click()}
+          className="w-full rounded-2xl border border-dashed border-borda py-6 text-sm text-nevoa"
+        >
+          Fotos, PDFs, planilhas, apresentações…
+        </button>
+      ) : (
+        <ul className="grid grid-cols-2 gap-2">
+          {anexos.map((a) => (
+            <ItemAnexo key={a.id} anexo={a} />
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
+function ItemAnexo({ anexo }: { anexo: Anexo }) {
+  const [url, setUrl] = useState('')
+  useEffect(() => {
+    const u = URL.createObjectURL(anexo.blob)
+    setUrl(u)
+    return () => URL.revokeObjectURL(u)
+  }, [anexo.blob])
+  const imagem = anexo.tipo.startsWith('image/')
+  return (
+    <li className="cartao relative overflow-hidden">
+      <a href={url} target="_blank" rel="noreferrer" download={imagem ? undefined : anexo.nome} className="block">
+        {imagem ? (
+          <img src={url} alt={anexo.nome} className="h-28 w-full object-cover" />
+        ) : (
+          <div className="flex h-28 items-center justify-center bg-linho text-couro">
+            <FileText size={30} strokeWidth={1.5} />
+          </div>
+        )}
+        <div className="p-2">
+          <div className="truncate text-xs font-medium">{anexo.nome}</div>
+          <div className="text-[11px] text-nevoa">{formatarTamanho(anexo.tamanho)}</div>
+        </div>
+      </a>
+      <button
+        aria-label={`Remover ${anexo.nome}`}
+        onClick={() => confirm(`Remover "${anexo.nome}"?`) && void db.anexos.delete(anexo.id)}
+        className="absolute right-1.5 top-1.5 rounded-full bg-white/90 p-1.5 text-bloqueado shadow"
+      >
+        <Trash2 size={14} />
+      </button>
+    </li>
+  )
+}
+
+function Historico({ input }: { input: Input }) {
+  const [nota, setNota] = useState('')
+  const enviar = async () => {
+    if (!nota.trim()) return
+    await adicionarNota(input.id, nota)
+    setNota('')
+  }
+  return (
+    <section>
+      <label className="rotulo">Atualizações</label>
+      <div className="flex gap-2">
+        <input
+          value={nota}
+          onChange={(e) => setNota(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && void enviar()}
+          className="campo"
+          placeholder="Ex.: Material enviado por e-mail"
+        />
+        <button aria-label="Adicionar atualização" className="botao-primario px-3.5" onClick={enviar} disabled={!nota.trim()}>
+          <MessageSquarePlus size={18} />
+        </button>
+      </div>
+      <ol className="mt-4 space-y-3 border-l border-borda pl-4">
+        {[...input.atualizacoes].reverse().map((a) => (
+          <li key={a.id} className="relative">
+            <span
+              className={clsx(
+                'absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-papel',
+                a.tipo === 'nota' ? 'bg-couro' : a.tipo === 'status' ? 'bg-andamento' : 'bg-borda',
+              )}
+            />
+            <div className={clsx('text-sm', a.tipo === 'sistema' && 'text-nevoa')}>{a.texto}</div>
+            <div className="text-[11px] text-nevoa">{formatarDataHora(a.data)}</div>
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}
