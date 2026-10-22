@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { CalendarDays, ChevronRight, Mic } from 'lucide-react'
+import { CalendarDays, ChevronRight, FileUp, Mic } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Cabecalho, Vazio } from '../components/ui'
 import { db } from '../lib/db'
@@ -30,16 +30,29 @@ export default function Reunioes() {
 
   return (
     <>
-      <Cabecalho titulo="Reuniões" subtitulo="Capturas, atas executivas e planos de ação." />
+      <Cabecalho
+        titulo="Reuniões"
+        subtitulo="Atas executivas, transcrições e planos de ação."
+        acoes={
+          <Link to="/captura" aria-label="Gravar no celular" className="rounded-full p-2 text-grafite hover:bg-linho">
+            <Mic size={20} />
+          </Link>
+        }
+      />
       {reunioes && reunioes.length === 0 ? (
         <Vazio
           icone={<CalendarDays size={28} />}
-          titulo="Nenhuma reunião gravada"
-          texto="Grave uma reunião ou agenda: o app transcreve a conversa e gera a ata e o plano de ação."
+          titulo="Nenhuma reunião ainda"
+          texto="Importe a transcrição ou o resumo de uma reunião (ou grave pelo celular) para gerar a ata e o plano de ação."
           acao={
-            <Link to="/captura" className="botao-primario">
-              <Mic size={18} /> Gravar reunião
-            </Link>
+            <div className="flex flex-col gap-2.5">
+              <Link to="/importar" className="botao-primario">
+                <FileUp size={18} /> Importar transcrição ou resumo
+              </Link>
+              <Link to="/captura" className="botao-secundario">
+                <Mic size={18} /> Gravar no celular
+              </Link>
+            </div>
           }
         />
       ) : (

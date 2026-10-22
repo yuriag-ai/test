@@ -4,7 +4,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { AtaView } from '../components/AtaView'
 import { RevisaoAcoes, paraRevisao, type AcaoRevisavel } from '../components/RevisaoAcoes'
 import { Cabecalho, useAviso } from '../components/ui'
-import { atualizarReuniao, criarInputsDeAcoes, db } from '../lib/db'
+import { aplicarRevisao, atualizarReuniao, db } from '../lib/db'
+import { resumoSalvamento, textoBotaoSalvar } from '../lib/rotulos'
 
 export default function Revisao() {
   const { id = '' } = useParams()
@@ -28,17 +29,20 @@ export default function Revisao() {
     )
   }
 
-  const total = acoes?.filter((a) => a.incluir).length ?? 0
+  const novos = acoes?.filter((a) => a.incluir && !a.vinculo).length ?? 0
+  const vinculados = acoes?.filter((a) => a.incluir && a.vinculo).length ?? 0
 
   const confirmar = async () => {
     if (!acoes) return
     setSalvando(true)
-    const criados = await criarInputsDeAcoes(
-      acoes.filter((a) => a.incluir),
-      { reuniaoId: reuniao.id, data: reuniao.data, local: reuniao.local, origem: reuniao.origem },
-    )
+    const { criados, atualizados } = await aplicarRevisao(acoes, {
+      reuniaoId: reuniao.id,
+      data: reuniao.data,
+      local: reuniao.local,
+      origem: reuniao.origem,
+    })
     await atualizarReuniao(reuniao.id, { estado: 'processada', propostas: undefined })
-    avisar(criados.length ? `${criados.length} inputs criados` : 'Reunião salva')
+    avisar(resumoSalvamento(criados.length, atualizados) || 'Reunião salva')
     navigate(`/reunioes/${reuniao.id}`, { replace: true })
   }
 
@@ -63,7 +67,7 @@ export default function Revisao() {
       <div className="nao-imprimir fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] z-20 mx-auto max-w-xl px-4">
         <div className="rounded-2xl bg-papel/95 p-2 shadow-flutuante backdrop-blur">
           <button className="botao-primario w-full" disabled={salvando} onClick={confirmar}>
-            {total ? `Salvar e criar ${total} ${total === 1 ? 'input' : 'inputs'}` : 'Salvar sem criar inputs'}
+            {textoBotaoSalvar(novos, vinculados)}
           </button>
         </div>
       </div>

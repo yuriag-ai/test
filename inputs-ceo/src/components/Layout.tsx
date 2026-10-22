@@ -1,12 +1,12 @@
 import clsx from 'clsx'
-import { CalendarDays, ListTodo, Mic, Settings2, Users } from 'lucide-react'
+import { CalendarDays, FilePlus2, ListTodo, Settings2, Users } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 
 const ITENS = [
   { para: '/', rotulo: 'Inputs', icone: ListTodo },
   { para: '/reunioes', rotulo: 'Reuniões', icone: CalendarDays },
-  { para: '/captura', rotulo: 'Gravar', icone: Mic, destaque: true },
+  { para: '/importar', rotulo: 'Importar', icone: FilePlus2, destaque: true },
   { para: '/pessoas', rotulo: 'Pessoas', icone: Users },
   { para: '/ajustes', rotulo: 'Ajustes', icone: Settings2 },
 ]
@@ -22,7 +22,7 @@ export function Layout({ children }: { children: ReactNode }) {
           <div className="mx-auto flex max-w-xl items-end justify-around px-2 pt-1.5">
             {ITENS.map(({ para, rotulo, icone: Icone, destaque }) =>
               destaque ? (
-                <NavLink key={para} to={para} className="-mt-6 flex flex-col items-center pb-1.5" aria-label="Gravar reunião">
+                <NavLink key={para} to={para} className="-mt-6 flex flex-col items-center pb-1.5" aria-label="Importar material">
                   <span className="flex h-14 w-14 items-center justify-center rounded-full bg-tinta text-papel shadow-flutuante ring-4 ring-papel">
                     <Icone size={24} />
                   </span>

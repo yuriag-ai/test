@@ -1,7 +1,7 @@
 import Dexie, { type EntityTable } from 'dexie'
-import type { AcaoProposta, Anexo, AudioChunk, Config, Input, Origem, Pessoa, Reuniao, Status } from './types'
+import type { AcaoProposta, AcaoRevisavel, Anexo, AudioChunk, Config, Input, Origem, Pessoa, Reuniao, Status } from './types'
 import { AREAS_PADRAO, MARCAS_PADRAO, ROTULO_STATUS } from './rotulos'
-import { agoraISO, hojeISO, normalizar, novoId, unicos } from './util'
+import { agoraISO, formatarData, hojeISO, normalizar, novoId, unicos } from './util'
 
 class BancoInputs extends Dexie {
   inputs!: EntityTable<Input, 'id'>
@@ -240,6 +240,40 @@ export async function criarInputsDeAcoes(
       origem: origem.origem,
     })),
   )
+}
+
+export interface OrigemRevisao {
+  reuniaoId?: string
+  data: string
+  local: string
+  origem: Origem
+}
+
+/**
+ * Salva o resultado da revisão: ações novas viram inputs; ações ligadas a um input existente
+ * viram uma anotação nele (e atualizam status, prazo ou responsável quando trazem novidade).
+ */
+export async function aplicarRevisao(acoes: AcaoRevisavel[], origem: OrigemRevisao) {
+  const incluidas = acoes.filter((a) => a.incluir)
+  const criados = await criarInputsDeAcoes(
+    incluidas.filter((a) => !a.vinculo),
+    origem,
+  )
+  const atualizados: string[] = []
+  for (const a of incluidas.filter((x) => x.vinculo)) {
+    const atual = await db.inputs.get(a.vinculo!)
+    if (!atual) continue
+    const onde = [formatarData(origem.data, true), origem.local].filter(Boolean).join(', ')
+    await adicionarNota(atual.id, `Retomado (${onde}): ${a.descricao}`)
+    const mudancas: Partial<Input> = {}
+    if (a.status !== 'pendente' && a.status !== atual.status) mudancas.status = a.status
+    if (a.prazo && !atual.prazo) mudancas.prazo = a.prazo
+    if (a.responsaveis.length && !atual.responsaveis.length) mudancas.responsaveis = a.responsaveis
+    if (Object.keys(mudancas).length) await atualizarInput(atual.id, mudancas)
+    atualizados.push(atual.id)
+  }
+  if (origem.reuniaoId && atualizados.length) await atualizarReuniao(origem.reuniaoId, { retomados: unicos(atualizados) })
+  return { criados, atualizados: atualizados.length }
 }
 
 export async function apagarTudo() {

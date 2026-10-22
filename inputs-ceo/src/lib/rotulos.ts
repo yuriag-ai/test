@@ -52,3 +52,18 @@ export const AREAS_PADRAO = [
 ]
 
 export const MARCAS_PADRAO = ['Arezzo', 'Schutz', 'Anacapri', 'Alexandre Birman', 'Fiever', 'Alme', 'Reserva', 'Vans']
+
+export function resumoSalvamento(criados: number, atualizados: number): string {
+  const partes: string[] = []
+  if (criados) partes.push(`${criados} ${criados === 1 ? 'input criado' : 'inputs criados'}`)
+  if (atualizados) partes.push(`${atualizados} ${atualizados === 1 ? 'atualizado' : 'atualizados'}`)
+  return partes.join(' · ')
+}
+
+export function textoBotaoSalvar(novos: number, vinculados: number): string {
+  if (!novos && !vinculados) return 'Salvar sem criar inputs'
+  const partes: string[] = []
+  if (novos) partes.push(`criar ${novos} ${novos === 1 ? 'input' : 'inputs'}`)
+  if (vinculados) partes.push(`atualizar ${vinculados}`)
+  return `Salvar: ${partes.join(' e ')}`
+}

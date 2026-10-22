@@ -121,17 +121,17 @@ export default function Inputs() {
         <Vazio
           icone={<ClipboardList size={28} />}
           titulo="Nenhum input ainda"
-          texto="Cole a lista de inputs do Alexandre, grave uma reunião ou registre um ponto manualmente."
+          texto="Envie a transcrição, o resumo ou a lista de inputs do Alexandre — ou registre um ponto manualmente."
           acao={
             <div className="flex flex-col gap-2.5">
               <Link to="/importar" className="botao-primario">
-                <FileUp size={18} /> Importar lista de inputs
+                <FileUp size={18} /> Importar transcrição, resumo ou lista
               </Link>
-              <Link to="/captura" className="botao-secundario">
-                <Mic size={18} /> Gravar reunião
-              </Link>
-              <Link to="/inputs/novo" className="botao-fantasma">
+              <Link to="/inputs/novo" className="botao-secundario">
                 <Plus size={18} /> Novo input manual
+              </Link>
+              <Link to="/captura" className="botao-fantasma">
+                <Mic size={18} /> Gravar no celular
               </Link>
             </div>
           }
@@ -235,7 +235,7 @@ export default function Inputs() {
       <Folha aberta={menu} aoFechar={() => setMenu(false)} titulo="Opções">
         <div className="space-y-2">
           <Link to="/importar" className="botao-secundario w-full justify-start">
-            <FileUp size={18} /> Importar lista de inputs
+            <FileUp size={18} /> Importar transcrição, resumo ou lista
           </Link>
           <button
             className="botao-secundario w-full justify-start"

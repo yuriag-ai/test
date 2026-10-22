@@ -73,6 +73,8 @@ export interface Reuniao {
   modo?: ModoProcessamento
   /** Ações sugeridas pela IA aguardando revisão. */
   propostas?: AcaoProposta[]
+  /** Inputs já existentes que foram retomados nesta reunião. */
+  retomados?: string[]
   estado: 'gravando' | 'rascunho' | 'processada'
   criadoEm: string
   atualizadoEm: string
@@ -112,9 +114,38 @@ export interface AcaoProposta {
   citacao: string | null
 }
 
+export type TipoMaterial = 'transcricao' | 'resumo' | 'lista'
+
+/** O que a IA identificou sobre o material enviado. */
+export interface MetaMaterial {
+  tipoMaterial: TipoMaterial
+  titulo: string | null
+  data: string | null
+  local: string | null
+  participantes: string[]
+}
+
+/** Ação em revisão: pode virar um input novo ou uma atualização de um input existente. */
+export interface AcaoRevisavel extends AcaoProposta {
+  chave: string
+  incluir: boolean
+  /** id de um input existente que será atualizado em vez de criar um novo */
+  vinculo?: string
+  /** o usuário confirmou que não é repetido */
+  manterSeparado?: boolean
+}
+
 export interface ResultadoProcessamento {
   ata: AtaExecutiva | null
   acoes: AcaoProposta[]
+  meta: MetaMaterial | null
+}
+
+/** Arquivo enviado para a IA ler diretamente (PDF ou imagem), em base64 sem o prefixo data:. */
+export interface ArquivoIA {
+  nome: string
+  tipo: 'application/pdf' | 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif'
+  dados: string
 }
 
 export interface ContextoProcessamento {
@@ -130,5 +161,7 @@ export interface ContextoProcessamento {
 export interface PedidoProcessamento {
   modo: ModoProcessamento
   texto: string
+  arquivos?: ArquivoIA[]
+  tipoMaterial?: TipoMaterial
   contexto: ContextoProcessamento
 }

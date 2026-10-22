@@ -24,5 +24,5 @@ export async function processarComIA(pedido: PedidoProcessamento): Promise<Resul
   }
   const corpo = (await r.json().catch(() => ({}))) as Partial<ResultadoProcessamento> & { erro?: string }
   if (!r.ok) throw new Error(corpo.erro || `Falha ao processar (${r.status}).`)
-  return { ata: corpo.ata ?? null, acoes: corpo.acoes ?? [] }
+  return { ata: corpo.ata ?? null, acoes: corpo.acoes ?? [], meta: corpo.meta ?? null }
 }

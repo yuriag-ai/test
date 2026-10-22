@@ -49,11 +49,19 @@ const RE_PARA_TIME = /^(?:para|com)\s+(?:o\s+|a\s+)?((?:time|equipe)\b.+)$/i
 const RE_ENVIADO_POR = new RegExp(`[Ee]nviad[oa]s?\\s+pel[oa]\\s+(${NOME})`, 'u')
 const RE_DATA = /(?<![\d./])(\d{2})[./](\d{2})(?:[./](\d{2}|\d{4}))?(?![\d./])/
 const RE_ALTA = /\b(problema|urgente|critico|risco|reclamacao|mofo)\b/
+const RE_CAIXA = /^(?:\[( |x|X)\]|([☐☑✅✔✓]))\s*/u
+const RE_ROTULO_RESP = new RegExp(`\\(?\\b(?:[Rr]espons[áa]ve(?:l|is)|[Rr]esp\\.?|[Dd]ono|[Oo]wner|[Qq]uem)\\s*:\\s*(${NOME}(?:\\s*(?:&|,|\\se\\s)\\s*${NOME})*)\\)?`, 'u')
+const RE_MENCAO = /(?:^|\s)@([A-Za-zÀ-ÿ][\wÀ-ÿ]+(?:\.[A-Za-zÀ-ÿ][\wÀ-ÿ]+)?)/gu
+const RE_NOME_VAI = new RegExp(
+  `^(${NOME})\\s+(?:vai|ir[áa]|deve|dever[áa]|precisa|fica de|ficou de|ficaram de|se comprometeu a|vai fazer|vai trazer)\\b`,
+  'u',
+)
+const DIAS_SEMANA = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado']
 
 /** Divide o texto colado em itens, respeitando numeração ("1.", "2)", "3 -") ou marcadores. */
 export function dividirItens(texto: string): string[] {
   const linhas = texto.replace(/\r/g, '').split('\n')
-  const reInicio = /^\s*(?:\d{1,3}\s*[.)\-–]|[-•*▪●])\s+/
+  const reInicio = /^\s*(?:\d{1,3}\s*[.)\-–]|[-•*▪●]|[☐☑✅✔✓](?=\s))\s+/u
   const temMarcadores = linhas.some((l) => reInicio.test(l))
   const itens: string[] = []
   for (const linha of linhas) {
@@ -95,6 +103,35 @@ function proximaData(dia: number, mes: number, ano: number | null, ref: string):
   return candidata >= ref ? candidata : montar(anoRef + 1)
 }
 
+function somarDias(iso: string, dias: number): string {
+  const [a, m, d] = iso.split('-').map(Number)
+  return new Date(Date.UTC(a, m - 1, d + dias)).toISOString().slice(0, 10)
+}
+
+/** Prazos relativos comuns em resumos: "até sexta", "amanhã", "hoje", "até dia 15". */
+function prazoRelativo(textoNormalizado: string, ref: string): string | null {
+  if (/\bate amanha\b|\bamanha\b/.test(textoNormalizado)) return somarDias(ref, 1)
+  if (/\bate hoje\b|\bpara hoje\b/.test(textoNormalizado)) return ref
+  const dia = textoNormalizado.match(/\bate (?:o )?dia (\d{1,2})\b/)
+  if (dia) {
+    const [a, m] = ref.split('-').map(Number)
+    const n = Number(dia[1])
+    if (n >= 1 && n <= 31) {
+      const candidata = `${a}-${String(m).padStart(2, '0')}-${String(n).padStart(2, '0')}`
+      return candidata >= ref ? candidata : proximaData(n, m === 12 ? 1 : m + 1, m === 12 ? a + 1 : a, ref)
+    }
+  }
+  const semana = textoNormalizado.match(/\b(?:ate|para|na|nesta|essa|esta|proxima) (?:a )?(segunda|terca|quarta|quinta|sexta|sabado|domingo)(?:-feira)?\b/)
+  if (semana) {
+    const alvo = DIAS_SEMANA.indexOf(semana[1])
+    const [a, m, d] = ref.split('-').map(Number)
+    const hoje = new Date(Date.UTC(a, m - 1, d)).getUTCDay()
+    const delta = (alvo - hoje + 7) % 7 || 7
+    return somarDias(ref, delta)
+  }
+  return null
+}
+
 function encurtarTitulo(texto: string): string {
   let t = texto.trim().replace(/[.;:]+$/, '')
   if (t.length > 70 && t.includes('(')) t = t.replace(/\s*\(.*$/s, '').trim() || t
@@ -103,13 +140,32 @@ function encurtarTitulo(texto: string): string {
     if (virgula > 0 && virgula < 80) t = `${t.slice(0, virgula)}…`
     else t = `${t.slice(0, t.lastIndexOf(' ', 80))}…`
   }
-  return t
+  return t.charAt(0).toUpperCase() + t.slice(1)
 }
 
 export function interpretarItem(original: string, opcoes: OpcoesImportacao): AcaoProposta {
   const responsaveis: string[] = []
   let status: AcaoProposta['status'] = 'pendente'
-  let corpo = original.trim()
+  // Remove marcação de checklist ("[ ]", "[x]", "☑") e negrito de Markdown
+  let limpo = original.trim().replace(/\*\*|__/g, '')
+  const caixa = limpo.match(RE_CAIXA)
+  if (caixa) {
+    if ((caixa[1] && caixa[1] !== ' ') || (caixa[2] && caixa[2] !== '☐')) status = 'concluido'
+    limpo = limpo.slice(caixa[0].length).trim()
+  }
+  // "Responsável: Fulano", "@Fulano"
+  const rotulo = limpo.match(RE_ROTULO_RESP)
+  if (rotulo) {
+    const nomes = pareceNomes(rotulo[1], opcoes.marcas)
+    if (nomes) {
+      responsaveis.push(...nomes)
+      limpo = limpo.replace(rotulo[0], '').replace(/\s+([.,;|])/g, '$1').replace(/^[\s,;|–—-]+|[\s,;|–—-]+$/g, '').trim()
+    }
+  }
+  for (const m of limpo.matchAll(RE_MENCAO)) {
+    responsaveis.push(m[1].split('.').map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(' '))
+  }
+  let corpo = limpo
 
   // "Nome: pedido"
   const prefixo = corpo.match(RE_PREFIXO_NOME)
@@ -141,10 +197,10 @@ export function interpretarItem(original: string, opcoes: OpcoesImportacao): Aca
     conteudo.push(seg)
   })
 
-  // "puxar com Gabriel", "avaliar com o Antonio"
+  // "puxar com Fulano", "avaliar com o Fulano", "Fulano vai trazer…"
   if (!responsaveis.length) {
-    const com = corpo.match(RE_VERBO_COM)
-    if (com) responsaveis.push(com[1])
+    const com = corpo.match(RE_VERBO_COM) ?? corpo.match(RE_NOME_VAI)
+    if (com && pareceNomes(com[1], opcoes.marcas)) responsaveis.push(com[1])
   }
 
   // Status ao final ("Enviado.", "Em andamento.")
@@ -162,22 +218,22 @@ export function interpretarItem(original: string, opcoes: OpcoesImportacao): Aca
   const principal = frases(conteudo[0] ?? corpo).filter((f) => !STATUS_FRASE.some(([, re]) => re.test(f)))
   const titulo = encurtarTitulo(principal[0] ?? corpo)
 
-  const texto = normalizar(original)
+  const texto = normalizar(limpo)
   const area = PALAVRAS_AREA.find(([nome, re]) => opcoes.areas.includes(nome) && re.test(texto))?.[0] ?? null
   const marca =
     opcoes.marcas.find((m) => new RegExp(`(^|[^\\p{L}])${normalizar(m).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^\\p{L}]|$)`, 'u').test(texto)) ??
     null
 
-  const data = original.match(RE_DATA)
+  const data = limpo.match(RE_DATA)
   const prazo = data
     ? proximaData(Number(data[1]), Number(data[2]), data[3] ? Number(data[3]) : null, opcoes.dataReferencia)
-    : null
+    : prazoRelativo(texto, opcoes.dataReferencia)
 
   const prioridade: Prioridade = RE_ALTA.test(texto) ? 'alta' : 'media'
 
   return {
     titulo,
-    descricao: original.trim(),
+    descricao: limpo,
     contexto: '',
     responsaveis: unicos(responsaveis),
     area,

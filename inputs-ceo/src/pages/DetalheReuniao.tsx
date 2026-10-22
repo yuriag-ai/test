@@ -15,7 +15,13 @@ export default function DetalheReuniao() {
   const navigate = useNavigate()
   const avisar = useAviso()
   const reuniao = useLiveQuery(() => db.reunioes.get(id).then((r) => r ?? null), [id])
-  const inputs = useLiveQuery(() => db.inputs.where('reuniaoId').equals(id).sortBy('numero'), [id]) ?? []
+  const inputs =
+    useLiveQuery(async () => {
+      const reuniao = await db.reunioes.get(id)
+      const daReuniao = await db.inputs.where('reuniaoId').equals(id).toArray()
+      const retomados = (await db.inputs.bulkGet(reuniao?.retomados ?? [])).filter((i): i is Input => Boolean(i))
+      return [...daReuniao, ...retomados.filter((r) => r.reuniaoId !== id)].sort((a, b) => a.numero - b.numero)
+    }, [id]) ?? []
   const [audioUrl, setAudioUrl] = useState('')
   const [verTranscricao, setVerTranscricao] = useState(false)
 
@@ -55,7 +61,7 @@ export default function DetalheReuniao() {
     navigate('/reunioes', { replace: true })
   }
 
-  const plano = <PlanoDeAcao inputs={inputs} />
+  const plano = <PlanoDeAcao inputs={inputs} reuniaoId={id} />
 
   return (
     <>
@@ -121,7 +127,7 @@ export default function DetalheReuniao() {
   )
 }
 
-function PlanoDeAcao({ inputs }: { inputs: Input[] }) {
+function PlanoDeAcao({ inputs, reuniaoId }: { inputs: Input[]; reuniaoId: string }) {
   if (!inputs.length) return <p className="text-sm text-nevoa">Nenhum input criado a partir desta reunião.</p>
   return (
     <ul className="divide-y divide-borda">
@@ -130,6 +136,7 @@ function PlanoDeAcao({ inputs }: { inputs: Input[] }) {
           <Link to={`/inputs/${i.id}`} className="block">
             <div className="text-[15px] font-medium leading-snug">
               <span className="text-nevoa">#{i.numero}</span> {i.titulo}
+              {i.reuniaoId !== reuniaoId && <span className="chip ml-1.5 bg-andamento-claro py-0.5 align-middle text-andamento">retomado</span>}
             </div>
             <div className="mt-1 text-[13px] text-grafite">{i.responsaveis.join(', ') || 'Responsável a definir'}</div>
           </Link>
