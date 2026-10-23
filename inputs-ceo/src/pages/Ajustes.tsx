@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { CheckCircle2, CircleAlert, Download, Plus, Trash2, Upload, X } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { Cabecalho, CampoLista, useAviso, useConfirmar } from '../components/ui'
+import { Cabecalho, CampoLista, Secao, useAviso, useConfirmar } from '../components/ui'
 import { EM_ARTIFACT, MSG_SEM_IA } from '../lib/ambiente'
 import { useIA, useListas } from '../hooks/useDados'
 import { apagarTudo, db, salvarLista } from '../lib/db'
@@ -19,12 +19,12 @@ export default function Ajustes() {
 
   return (
     <>
-      <Cabecalho titulo="Ajustes" />
+      <Cabecalho logo sobrelinha="Configurações" titulo="Ajustes" acento="e dados" />
       <div className="space-y-7 px-4 pb-8">
-        <section className="cartao flex items-start gap-3 p-4">
-          {ia ? <CheckCircle2 className="mt-0.5 shrink-0 text-concluido" size={20} /> : <CircleAlert className="mt-0.5 shrink-0 text-pendente" size={20} />}
+        <section className={ia === false ? 'destaque-rose' : 'destaque-leve'}>
+          {ia ? <CheckCircle2 className="mt-0.5 shrink-0" size={20} /> : <CircleAlert className="mt-0.5 shrink-0" size={20} />}
           <div className="text-sm leading-relaxed">
-            <div className="font-medium">{ia === null ? 'Verificando IA…' : ia ? 'IA conectada' : 'IA não configurada'}</div>
+            <div className="font-bold">{ia === null ? 'Verificando IA…' : ia ? 'IA conectada' : 'IA não configurada'}</div>
             <div className="text-grafite">
               {ia
                 ? 'Atas executivas, planos de ação e refinamento de listas estão disponíveis.'
@@ -33,8 +33,7 @@ export default function Ajustes() {
           </div>
         </section>
 
-        <section>
-          <h2 className="rotulo">Aparência</h2>
+        <Secao titulo="Aparência">
           <div className="grid grid-cols-3 gap-1.5">
             {(
               [
@@ -51,8 +50,8 @@ export default function Ajustes() {
                 }}
                 className={
                   tema === valor
-                    ? 'rounded-xl border border-tinta bg-tinta py-2.5 text-sm font-medium text-papel'
-                    : 'rounded-xl border border-borda bg-superficie py-2.5 text-sm font-medium text-grafite'
+                    ? 'rounded-md border border-tinta bg-tinta py-2.5 text-sm font-bold text-papel'
+                    : 'rounded-md border border-borda bg-superficie py-2.5 text-sm font-bold text-grafite'
                 }
               >
                 {rotulo}
@@ -60,26 +59,25 @@ export default function Ajustes() {
             ))}
           </div>
           {tema === 'auto' && <p className="mt-1.5 text-[12px] text-nevoa">Segue o tema do aparelho ou do claude.ai.</p>}
-        </section>
+        </Secao>
 
         <EditorLista titulo="Áreas" itens={areas} aoSalvar={(v) => salvarLista('areas', v)} />
         <EditorLista titulo="Marcas" itens={marcas} aoSalvar={(v) => salvarLista('marcas', v)} />
 
-        <section>
-          <h2 className="rotulo">Pessoas ({pessoas.length})</h2>
+        <Secao titulo={<>Pessoas <span className="mt-numero ml-1 align-middle">{pessoas.length}</span></>}>
           {pessoas.length === 0 ? (
             <p className="text-sm text-nevoa">As pessoas são cadastradas automaticamente ao atribuir responsáveis.</p>
           ) : (
-            <ul className="cartao divide-y divide-borda">
+            <ul className="divide-y divide-regua">
               {pessoas.map((p) => (
-                <li key={p.id} className="flex items-center gap-2 p-2.5 pl-3.5">
-                  <span className="flex-1 truncate text-sm font-medium">{p.nome}</span>
+                <li key={p.id} className="flex items-center gap-2 py-2">
+                  <span className="flex-1 truncate text-sm font-bold">{p.nome}</span>
                   <div className="w-44">
                     <CampoLista valor={p.area} opcoes={areas} placeholder="Área" aoMudar={(area) => void db.pessoas.update(p.id, { area })} />
                   </div>
                   <button
                     aria-label={`Remover ${p.nome}`}
-                    className="rounded-full p-2 text-nevoa hover:text-bloqueado"
+                    className="rounded-full p-2 text-nevoa hover:text-perigo"
                     onClick={() => void db.pessoas.delete(p.id)}
                   >
                     <X size={16} />
@@ -88,10 +86,9 @@ export default function Ajustes() {
               ))}
             </ul>
           )}
-        </section>
+        </Secao>
 
-        <section className="space-y-2">
-          <h2 className="rotulo">Dados</h2>
+        <Secao titulo="Dados" className="space-y-2">
           <p className="text-[13px] leading-relaxed text-grafite">
             {EM_ARTIFACT ? 'Nesta versão de teste, os dados ficam só neste navegador' : 'Os dados ficam guardados neste aparelho'} (
             {totais?.inputs ?? 0} inputs, {totais?.reunioes ?? 0} reuniões). Faça backups periódicos; a sincronização entre aparelhos e
@@ -127,7 +124,7 @@ export default function Ajustes() {
             <Download size={18} /> Exportar inputs para Excel
           </button>
           <button
-            className="botao w-full justify-start border border-bloqueado/30 text-bloqueado hover:bg-bloqueado-claro"
+            className="botao-perigo w-full justify-start"
             onClick={async () => {
               const ok = await confirmar({
                 titulo: 'Apagar todos os dados?',
@@ -142,7 +139,7 @@ export default function Ajustes() {
           >
             <Trash2 size={18} /> Apagar todos os dados
           </button>
-        </section>
+        </Secao>
       </div>
     </>
   )
@@ -156,13 +153,12 @@ function EditorLista({ titulo, itens, aoSalvar }: { titulo: string; itens: strin
     setNovo('')
   }
   return (
-    <section>
-      <h2 className="rotulo">{titulo}</h2>
+    <Secao titulo={titulo}>
       <div className="flex flex-wrap gap-1.5">
         {itens.map((item) => (
-          <span key={item} className="chip border border-borda bg-superficie py-1.5 pl-3 text-[13px]">
+          <span key={item} className="chip rounded-md border border-borda bg-superficie py-1.5 pl-3 text-[13px]">
             {item}
-            <button aria-label={`Remover ${item}`} className="text-nevoa hover:text-bloqueado" onClick={() => void aoSalvar(itens.filter((i) => i !== item))}>
+            <button aria-label={`Remover ${item}`} className="text-nevoa hover:text-perigo" onClick={() => void aoSalvar(itens.filter((i) => i !== item))}>
               <X size={14} />
             </button>
           </span>
@@ -174,6 +170,6 @@ function EditorLista({ titulo, itens, aoSalvar }: { titulo: string; itens: strin
           <Plus size={18} />
         </button>
       </div>
-    </section>
+    </Secao>
   )
 }

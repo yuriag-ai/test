@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { Camera, ExternalLink, FileText, MessageSquarePlus, Paperclip, Quote, Share2, Trash2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { AreaTexto, Cabecalho, CampoLista, CampoPessoas, SeletorStatus, useAviso, useCompartilhar, useConfirmar } from '../components/ui'
+import { AreaTexto, Cabecalho, CampoLista, CampoPessoas, Secao, SeletorStatus, useAviso, useCompartilhar, useConfirmar } from '../components/ui'
 import { EM_ARTIFACT } from '../lib/ambiente'
 import { useListas } from '../hooks/useDados'
 import { adicionarAnexos, adicionarNota, atualizarInput, db, excluirInput } from '../lib/db'
@@ -26,7 +26,7 @@ export default function DetalheInput() {
   if (input === null) {
     return (
       <>
-        <Cabecalho titulo="Input" voltar="/" />
+        <Cabecalho sobrelinha="Input" voltar="/" />
         <p className="px-4 py-12 text-center text-sm text-nevoa">Este input não existe mais.</p>
       </>
     )
@@ -64,38 +64,38 @@ export default function DetalheInput() {
     <>
       <Cabecalho
         voltar
-        titulo={<span className="text-sm font-semibold text-nevoa">Input #{input.numero}</span>}
+        sobrelinha={`Input #${input.numero}`}
         acoes={
           <>
             <button aria-label="Compartilhar" className="rounded-full p-2 hover:bg-linho" onClick={compartilharInput}>
               <Share2 size={19} />
             </button>
-            <button aria-label="Excluir" className="rounded-full p-2 text-bloqueado hover:bg-bloqueado-claro" onClick={excluir}>
+            <button aria-label="Excluir" className="rounded-full p-2 text-perigo hover:bg-ruim-claro" onClick={excluir}>
               <Trash2 size={19} />
             </button>
           </>
         }
       />
 
-      <div className="space-y-6 px-4 pb-8">
+      <div className="space-y-7 px-4 pb-8 pt-1">
         <TextoEditavel
           key={`t-${input.id}`}
           valor={input.titulo}
           aoSalvar={(titulo) => titulo.trim() && salvar({ titulo: titulo.trim() })}
-          className="w-full resize-none bg-transparent font-serif text-[24px] font-medium leading-tight outline-none"
+          className="w-full resize-none bg-transparent text-[22px] font-extrabold leading-[1.15] tracking-[-0.01em] outline-none"
           placeholder="Título"
         />
 
         <div className="flex flex-wrap items-center gap-2">
           <SeletorStatus grande status={input.status} aoMudar={(status) => salvar({ status })} />
-          <div className="flex rounded-full border border-borda bg-superficie p-0.5">
+          <div className="flex rounded-md border border-borda bg-superficie p-0.5">
             {PRIORIDADES.map((p) => (
               <button
                 key={p.valor}
                 onClick={() => salvar({ prioridade: p.valor as Prioridade })}
                 className={clsx(
-                  'rounded-full px-3 py-1.5 text-xs font-medium',
-                  input.prioridade === p.valor ? (p.valor === 'alta' ? 'bg-bloqueado text-papel' : 'bg-tinta text-papel') : 'text-grafite',
+                  'rounded px-3 py-1.5 text-xs font-bold',
+                  input.prioridade === p.valor ? (p.valor === 'alta' ? 'bg-aqua text-black' : 'bg-tinta text-papel') : 'text-grafite',
                 )}
               >
                 {p.rotulo}
@@ -104,7 +104,7 @@ export default function DetalheInput() {
           </div>
         </div>
 
-        <section className="cartao space-y-4 p-4">
+        <Secao titulo="Dono e prazo" className="space-y-4">
           <div>
             <label className="rotulo">Responsáveis</label>
             <CampoPessoas valor={input.responsaveis} aoMudar={(responsaveis) => salvar({ responsaveis })} sugestoes={nomes} />
@@ -154,18 +154,17 @@ export default function DetalheInput() {
             </div>
           </div>
           {reuniao && (
-            <Link to={`/reunioes/${reuniao.id}`} className="flex items-center gap-2 rounded-xl bg-linho px-3 py-2.5 text-sm">
-              <FileText size={16} className="text-couro" />
+            <Link to={`/reunioes/${reuniao.id}`} className="flex items-center gap-2 rounded-md bg-aqua-claro px-3 py-2.5 text-sm">
+              <FileText size={16} />
               <span className="flex-1 truncate">
-                Origem: <strong className="font-medium">{reuniao.titulo || 'Reunião'}</strong> · {formatarData(reuniao.data)}
+                Origem: <strong className="font-bold">{reuniao.titulo || 'Reunião'}</strong> · {formatarData(reuniao.data)}
               </span>
               <ExternalLink size={14} className="text-nevoa" />
             </Link>
           )}
-        </section>
+        </Secao>
 
-        <section>
-          <label className="rotulo">O que foi pedido</label>
+        <Secao titulo="O que foi pedido">
           <TextoEditavel
             key={`d-${input.id}`}
             valor={input.descricao}
@@ -173,36 +172,36 @@ export default function DetalheInput() {
             className="campo min-h-[96px] leading-relaxed"
             placeholder="Descrição completa do input"
           />
-        </section>
+          {input.citacao && (
+            <blockquote className="destaque-fino mt-3 italic text-grafite">
+              <Quote size={14} className="mt-1 shrink-0 text-tinta" />
+              {input.citacao}
+            </blockquote>
+          )}
+        </Secao>
 
-        {input.citacao && (
-          <blockquote className="flex gap-2 border-l-2 border-couro pl-3 text-sm italic leading-relaxed text-grafite">
-            <Quote size={14} className="mt-1 shrink-0 text-couro" />
-            {input.citacao}
-          </blockquote>
-        )}
-
-        <section>
-          <label className="rotulo">Contexto</label>
-          <TextoEditavel
-            key={`c-${input.id}`}
-            valor={input.contexto}
-            aoSalvar={(contexto) => salvar({ contexto: contexto.trim() })}
-            className="campo min-h-[72px] leading-relaxed"
-            placeholder="Em que conversa surgiu, por que é importante…"
-          />
-        </section>
-
-        <section>
-          <label className="rotulo">Observações</label>
-          <TextoEditavel
-            key={`o-${input.id}`}
-            valor={input.observacoes}
-            aoSalvar={(observacoes) => salvar({ observacoes: observacoes.trim() })}
-            className="campo min-h-[72px] leading-relaxed"
-            placeholder="Notas internas, links, combinados…"
-          />
-        </section>
+        <Secao titulo="Contexto e observações" className="space-y-3">
+          <div>
+            <label className="rotulo">Contexto</label>
+            <TextoEditavel
+              key={`c-${input.id}`}
+              valor={input.contexto}
+              aoSalvar={(contexto) => salvar({ contexto: contexto.trim() })}
+              className="campo min-h-[72px] leading-relaxed"
+              placeholder="Em que conversa surgiu, por que é importante…"
+            />
+          </div>
+          <div>
+            <label className="rotulo">Observações</label>
+            <TextoEditavel
+              key={`o-${input.id}`}
+              valor={input.observacoes}
+              aoSalvar={(observacoes) => salvar({ observacoes: observacoes.trim() })}
+              className="campo min-h-[72px] leading-relaxed"
+              placeholder="Notas internas, links, combinados…"
+            />
+          </div>
+        </Secao>
 
         <Anexos inputId={input.id} />
 
@@ -264,10 +263,10 @@ function Anexos({ inputId }: { inputId: string }) {
   }
 
   return (
-    <section>
-      <div className="mb-2 flex items-center justify-between">
-        <label className="rotulo mb-0">Anexos {anexos.length > 0 && `(${anexos.length})`}</label>
-        <div className="flex gap-1">
+    <Secao
+      titulo={<>Anexos {anexos.length > 0 && <span className="mt-numero ml-1 align-middle">{anexos.length}</span>}</>}
+      acoes={
+        <div className="-my-1 flex gap-1">
           <button className="botao-fantasma py-1.5 text-sm" onClick={() => camera.current?.click()}>
             <Camera size={16} /> Foto
           </button>
@@ -275,20 +274,21 @@ function Anexos({ inputId }: { inputId: string }) {
             <Paperclip size={16} /> Arquivo
           </button>
         </div>
-        <input ref={arquivo} type="file" multiple hidden onChange={(e) => void adicionar(e.target.files).then(() => (e.target.value = ''))} />
-        <input
-          ref={camera}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          hidden
-          onChange={(e) => void adicionar(e.target.files).then(() => (e.target.value = ''))}
-        />
-      </div>
+      }
+    >
+      <input ref={arquivo} type="file" multiple hidden onChange={(e) => void adicionar(e.target.files).then(() => (e.target.value = ''))} />
+      <input
+        ref={camera}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        hidden
+        onChange={(e) => void adicionar(e.target.files).then(() => (e.target.value = ''))}
+      />
       {anexos.length === 0 ? (
         <button
           onClick={() => arquivo.current?.click()}
-          className="w-full rounded-2xl border border-dashed border-borda py-6 text-sm text-nevoa"
+          className="w-full rounded-md border border-dashed border-borda py-6 text-sm text-nevoa"
         >
           Fotos, PDFs, planilhas, apresentações…
         </button>
@@ -299,7 +299,7 @@ function Anexos({ inputId }: { inputId: string }) {
           ))}
         </ul>
       )}
-    </section>
+    </Secao>
   )
 }
 
@@ -332,12 +332,12 @@ function ItemAnexo({ anexo }: { anexo: Anexo }) {
         {imagem ? (
           <img src={url} alt={anexo.nome} className="h-28 w-full object-cover" />
         ) : (
-          <div className="flex h-28 items-center justify-center bg-linho text-couro">
+          <div className="flex h-28 items-center justify-center bg-aqua-claro text-tinta">
             <FileText size={30} strokeWidth={1.5} />
           </div>
         )}
         <div className="p-2">
-          <div className="truncate text-xs font-medium">{anexo.nome}</div>
+          <div className="truncate text-xs font-semibold">{anexo.nome}</div>
           <div className="text-[11px] text-nevoa">{formatarTamanho(anexo.tamanho)}</div>
         </div>
       </a>
@@ -346,7 +346,7 @@ function ItemAnexo({ anexo }: { anexo: Anexo }) {
         onClick={async () => {
           if (await confirmar({ titulo: 'Remover anexo?', texto: anexo.nome, botao: 'Remover', perigo: true })) await db.anexos.delete(anexo.id)
         }}
-        className="absolute right-1.5 top-1.5 rounded-full bg-superficie/90 p-1.5 text-bloqueado shadow"
+        className="absolute right-1.5 top-1.5 rounded-full bg-superficie/90 p-1.5 text-perigo shadow"
       >
         <Trash2 size={14} />
       </button>
@@ -362,8 +362,7 @@ function Historico({ input }: { input: Input }) {
     setNota('')
   }
   return (
-    <section>
-      <label className="rotulo">Atualizações</label>
+    <Secao titulo="Atualizações">
       <div className="flex gap-2">
         <input
           value={nota}
@@ -382,7 +381,7 @@ function Historico({ input }: { input: Input }) {
             <span
               className={clsx(
                 'absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-papel',
-                a.tipo === 'nota' ? 'bg-couro' : a.tipo === 'status' ? 'bg-andamento' : 'bg-borda',
+                a.tipo === 'nota' ? 'bg-aqua' : a.tipo === 'status' ? 'bg-rose' : 'bg-cinza',
               )}
             />
             <div className={clsx('text-sm', a.tipo === 'sistema' && 'text-nevoa')}>{a.texto}</div>
@@ -390,6 +389,6 @@ function Historico({ input }: { input: Input }) {
           </li>
         ))}
       </ol>
-    </section>
+    </Secao>
   )
 }

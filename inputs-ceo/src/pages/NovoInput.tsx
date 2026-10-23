@@ -38,7 +38,7 @@ export default function NovoInput() {
 
   return (
     <>
-      <Cabecalho titulo="Novo input" voltar />
+      <Cabecalho sobrelinha="Registro manual" titulo="Novo" acento="input" voltar />
       <div className="space-y-5 px-4 pb-8">
         <div>
           <label className="rotulo" htmlFor="descricao">
@@ -102,8 +102,12 @@ export default function NovoInput() {
                 key={p.valor}
                 onClick={() => setPrioridade(p.valor)}
                 className={clsx(
-                  'flex-1 rounded-xl border py-2.5 text-sm font-medium',
-                  prioridade === p.valor ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-superficie text-grafite',
+                  'flex-1 rounded-md border py-2.5 text-sm font-bold',
+                  prioridade !== p.valor
+                    ? 'border-borda bg-superficie text-grafite'
+                    : p.valor === 'alta'
+                      ? 'border-aqua bg-aqua text-black'
+                      : 'border-tinta bg-tinta text-papel',
                 )}
               >
                 {p.rotulo}

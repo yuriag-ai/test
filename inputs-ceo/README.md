@@ -95,6 +95,7 @@ inputs-ceo/
 ```
 
 - **IA:** Claude (`claude-opus-5-5`) com pensamento adaptativo e saída estruturada; o servidor valida o JSON antes de devolver. Recusas e respostas cortadas viram mensagens claras para o usuário.
+- **Padrão visual:** segue o template de apresentação Arezzo&CO. Preto sobre branco, títulos em caixa alta com o final em aqua, sobrelinha e logo AREZZO&CO no topo. A paleta aqua · rosé · oliva · azul-claro · cinza é usada em rodízio, com marca-texto para valores e palavras-chave e linhas numeradas ("01."). Gotham é substituída por Montserrat (Google Fonts). As cores ficam como variáveis em `src/index.css`, e as classes de componente (`titulo-pagina`, `mt-valor`, `destaque-leve`…) também ficam lá. O tema escuro é opcional, em *Ajustes → Aparência*. O link de teste usa o mesmo visual, sem logo nem nome da empresa.
 - **Dados:** nesta primeira versão ficam **no próprio aparelho** (IndexedDB). O texto da reunião só sai do celular quando você pede para gerar a ata/plano. Use *Ajustes → Exportar backup* periodicamente.
 
 ## Limitações conhecidas desta versão

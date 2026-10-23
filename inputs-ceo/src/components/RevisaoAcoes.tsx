@@ -160,9 +160,12 @@ export function RevisaoAcoes({ acoes, aoMudar }: { acoes: AcaoRevisavel[]; aoMud
               key={valor}
               onClick={() => setFiltro(valor)}
               className={clsx(
-                'shrink-0 rounded-full border px-3 py-1.5 text-[13px] font-medium',
-                filtro === valor ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-superficie text-grafite',
-                valor === 'atencao' && filtro !== valor && 'text-pendente',
+                'shrink-0 rounded-md border px-3 py-1.5 text-[13px] font-bold',
+                filtro === valor
+                  ? 'border-tinta bg-tinta text-papel'
+                  : valor === 'atencao'
+                    ? 'border-rose bg-rose-claro text-tinta'
+                    : 'border-borda bg-superficie text-grafite',
               )}
             >
               {rotulo} <span className="opacity-60">{contagem[valor]}</span>
@@ -176,20 +179,20 @@ export function RevisaoAcoes({ acoes, aoMudar }: { acoes: AcaoRevisavel[]; aoMud
           {marcadas} de {acoes.length} marcadas
         </span>
         <button
-          className="rounded-lg px-2.5 py-1.5 text-[13px] font-medium text-couro hover:bg-linho"
+          className="rounded-md px-2.5 py-1.5 text-[13px] font-bold text-tinta hover:bg-linho"
           onClick={() => aoMudar(acoes.map((a) => ({ ...a, incluir: marcadas < acoes.length })))}
         >
           {marcadas < acoes.length ? 'Marcar todas' : 'Desmarcar'}
         </button>
         <button
-          className={clsx('flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[13px] font-medium', selecionando ? 'bg-tinta text-papel' : 'text-couro hover:bg-linho')}
+          className={clsx('flex items-center gap-1 rounded-md px-2.5 py-1.5 text-[13px] font-bold', selecionando ? 'bg-tinta text-papel' : 'text-tinta hover:bg-linho')}
           onClick={() => (selecionando ? sairSelecao() : setSelecionando(true))}
         >
           <ListChecks size={15} /> {selecionando ? 'Concluir' : 'Editar várias'}
         </button>
       </div>
 
-      <ol className="space-y-2.5">
+      <ol className="border-t border-regua">
         {visiveis.map(({ acao, analise: an, posicao }) => (
           <ItemRevisao
             key={acao.chave}
@@ -213,16 +216,16 @@ export function RevisaoAcoes({ acoes, aoMudar }: { acoes: AcaoRevisavel[]; aoMud
           setFiltro('todos')
           aoMudar([...acoes, acaoVazia()])
         }}
-        className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-borda py-3.5 text-sm font-medium text-grafite"
+        className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-dashed border-borda py-3.5 text-sm font-bold text-grafite"
       >
         <Plus size={17} /> Adicionar item
       </button>
 
       {selecionando && (
         <div className="nao-imprimir fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] z-[25] mx-auto max-w-xl px-4">
-          <div className="flex items-center gap-1.5 rounded-2xl bg-tinta p-2 text-papel shadow-flutuante">
+          <div className="flex items-center gap-1.5 rounded-lg bg-tinta p-2 text-papel shadow-flutuante">
             <button
-              className="px-2 text-[13px] font-medium underline-offset-2 hover:underline"
+              className="px-2 text-[13px] font-bold underline-offset-2 hover:underline"
               onClick={() =>
                 setSelecionados(selecionados.size === visiveis.length ? new Set() : new Set(visiveis.map((v) => v.acao.chave)))
               }
@@ -232,7 +235,7 @@ export function RevisaoAcoes({ acoes, aoMudar }: { acoes: AcaoRevisavel[]; aoMud
             <span className="flex-1 text-center text-[13px]">{selecionados.size} selecionados</span>
             <button
               disabled={!selecionados.size}
-              className="rounded-xl bg-papel px-3 py-2 text-[13px] font-medium text-tinta disabled:opacity-40"
+              className="rounded-md bg-aqua px-3 py-2 text-[13px] font-bold text-black disabled:opacity-40"
               onClick={() => setFolhaLote(true)}
             >
               Editar
@@ -240,7 +243,7 @@ export function RevisaoAcoes({ acoes, aoMudar }: { acoes: AcaoRevisavel[]; aoMud
             <button
               aria-label="Remover selecionados"
               disabled={!selecionados.size}
-              className="rounded-xl p-2 text-papel disabled:opacity-40"
+              className="rounded-md p-2 text-papel disabled:opacity-40"
               onClick={async () => {
                 const ok = await confirmar({ titulo: `Remover ${selecionados.size} itens da revisão?`, botao: 'Remover', perigo: true })
                 if (!ok) return
@@ -311,10 +314,10 @@ function ItemRevisao({
     <li
       onClick={selecionando ? aoSelecionar : undefined}
       className={clsx(
-        'cartao p-3.5 transition',
+        'linha py-3.5 transition',
         !a.incluir && !selecionando && 'opacity-50',
         selecionando && 'cursor-pointer',
-        selecionado && 'ring-2 ring-tinta',
+        selecionado && '-mx-4 bg-aqua-claro px-4',
       )}
     >
       <div className="flex gap-3">
@@ -340,10 +343,10 @@ function ItemRevisao({
           </button>
         )}
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 text-[11px] font-semibold text-nevoa">
-            {posicao}
+          <div className="flex items-center gap-2">
+            <span className="text-[13px] font-black leading-none">{String(posicao).padStart(2, '0')}.</span>
             {an.vinculado && (
-              <span className="chip bg-andamento-claro py-0.5 text-andamento">
+              <span className="mt-bloco inline-flex items-center gap-1">
                 <Link2 size={11} /> Atualiza o #{an.vinculado.numero}
               </span>
             )}
@@ -353,24 +356,28 @@ function ItemRevisao({
             readOnly={selecionando}
             placeholder="Título da ação"
             onChange={(e) => aoMudar({ titulo: e.target.value })}
-            className="-mx-1 w-full resize-none rounded-md bg-transparent px-1 text-[15px] font-medium leading-snug outline-none placeholder:text-nevoa focus:bg-linho"
+            className="-mx-1 mt-1 w-full resize-none rounded-md bg-transparent px-1 text-[15px] font-bold leading-snug outline-none placeholder:text-nevoa focus:bg-linho"
           />
           <div className="mt-1 flex flex-wrap items-center gap-1.5">
             {a.responsaveis.length ? (
               a.responsaveis.map((r) => (
-                <span key={r} className={clsx('chip', novos.has(r) ? 'border border-dashed border-couro/60 bg-superficie' : 'bg-linho')}>
+                <span key={r} className={clsx('chip text-tinta', novos.has(r) ? 'border border-dashed border-tinta/40 bg-superficie' : 'bg-linho')}>
                   {r}
-                  {novos.has(r) && <span className="text-[10px] font-semibold uppercase text-couro">novo</span>}
+                  {novos.has(r) && <span className="bg-rose px-1 text-[9px] font-black uppercase leading-[14px] text-black">novo</span>}
                 </span>
               ))
             ) : (
-              <span className="chip border border-dashed border-pendente/50 text-pendente">Sem responsável</span>
+              <span className="chip bg-pendente-claro text-tinta">Sem responsável</span>
             )}
             {a.area && <span className="chip text-grafite">{a.area}</span>}
-            {a.marca && <span className="chip bg-couro-claro text-couro-escuro">{a.marca}</span>}
+            {a.marca && <span className="chip border border-borda text-[11px] uppercase tracking-wide text-tinta">{a.marca}</span>}
             {a.prazo && <span className="chip text-grafite">até {formatarData(a.prazo)}</span>}
-            {a.status !== 'pendente' && <span className="chip bg-concluido-claro text-concluido">{ROTULO_STATUS[a.status]}</span>}
-            {a.prioridade === 'alta' && <span className="chip bg-bloqueado-claro text-bloqueado">Alta</span>}
+            {a.status !== 'pendente' && (
+              <span className={clsx('chip text-tinta', a.status === 'concluido' ? 'bg-concluido-claro' : 'bg-andamento-claro')}>
+                {ROTULO_STATUS[a.status]}
+              </span>
+            )}
+            {a.prioridade === 'alta' && <span className="mt-chave">Alta</span>}
           </div>
 
           {!selecionando && a.incluir && (
@@ -439,12 +446,12 @@ function ItemRevisao({
 
           {!selecionando && (
             <div className="mt-2 flex items-center gap-4">
-              <button onClick={() => setAberto(!aberto)} className="flex items-center gap-1 text-[13px] font-medium text-couro">
+              <button onClick={() => setAberto(!aberto)} className="flex items-center gap-1 text-[13px] font-bold text-tinta">
                 {aberto ? 'Fechar' : 'Ajustar detalhes'}
                 <ChevronDown size={15} className={clsx('transition', aberto && 'rotate-180')} />
               </button>
               {a.citacao && (
-                <button onClick={() => setVerTrecho(!verTrecho)} className="flex items-center gap-1 text-[13px] font-medium text-grafite">
+                <button onClick={() => setVerTrecho(!verTrecho)} className="flex items-center gap-1 text-[13px] font-semibold text-grafite">
                   <Quote size={13} /> {verTrecho ? 'Ocultar trecho' : 'Trecho de origem'}
                 </button>
               )}
@@ -452,7 +459,7 @@ function ItemRevisao({
           )}
 
           {verTrecho && a.citacao && (
-            <blockquote className="mt-2 border-l-2 border-couro pl-3 text-[13px] italic leading-relaxed text-grafite">{a.citacao}</blockquote>
+            <blockquote className="destaque-fino mt-2 block text-[13px] italic leading-relaxed text-grafite">{a.citacao}</blockquote>
           )}
 
           {aberto && !selecionando && (
@@ -506,7 +513,7 @@ function ItemRevisao({
                 <button className="botao-secundario flex-1 py-2.5 text-sm" onClick={aoDuplicar}>
                   <Copy size={15} /> Duplicar
                 </button>
-                <button className="botao flex-1 border border-bloqueado/30 py-2.5 text-sm text-bloqueado hover:bg-bloqueado-claro" onClick={aoRemover}>
+                <button className="botao-perigo flex-1 py-2.5 text-sm" onClick={aoRemover}>
                   <Trash2 size={15} /> Remover
                 </button>
               </div>
@@ -538,14 +545,14 @@ function Alerta({
   acoes: { rotulo: string; icone?: React.ReactNode; onClick: () => void }[]
 }) {
   return (
-    <div className={clsx('rounded-xl px-3 py-2.5 text-[13px] leading-snug', tom === 'atencao' ? 'bg-pendente-claro text-tinta' : 'bg-andamento-claro text-tinta')}>
+    <div className={clsx('rounded-md px-3 py-2.5 text-[13px] leading-snug text-tinta', tom === 'atencao' ? 'bg-rose-claro' : 'bg-aqua-claro')}>
       <div>{texto}</div>
       <div className="mt-2 flex flex-wrap gap-1.5">
         {acoes.map((a) => (
           <button
             key={a.rotulo}
             onClick={a.onClick}
-            className="flex items-center gap-1 rounded-lg border border-tinta/10 bg-superficie px-2.5 py-1.5 text-[12px] font-medium"
+            className="flex items-center gap-1 rounded-md border border-tinta/15 bg-superficie px-2.5 py-1.5 text-[12px] font-bold"
           >
             {a.icone}
             {a.rotulo}

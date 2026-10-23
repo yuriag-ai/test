@@ -2,96 +2,137 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Couro e linho: neutros quentes de ateliê. Escuro: o mesmo couro sobre carvão. */
+/*
+ * Padrão visual Arezzo&CO: preto sobre branco, títulos em caixa alta com o trecho final em aqua,
+ * paleta aqua · rosé · oliva · azul-claro · cinza em rodízio, ícones de linha em preto.
+ * Tema escuro (opcional, em Ajustes) segue os divisores do padrão: fundo preto, texto branco, acento aqua.
+ */
 :root {
-  --papel: 250 248 245;
+  --papel: 255 255 255;
   --superficie: 255 255 255;
-  --linho: 241 237 230;
-  --borda: 228 222 212;
-  --tinta: 28 26 23;
-  --grafite: 87 82 74;
-  --nevoa: 134 127 116;
-  --couro: 138 90 51;
-  --couro-claro: 244 233 222;
-  --couro-escuro: 110 70 38;
-  --pendente: 158 99 12;
-  --pendente-claro: 251 240 220;
-  --andamento: 47 93 138;
-  --andamento-claro: 227 236 245;
-  --concluido: 61 115 80;
-  --concluido-claro: 226 240 230;
-  --bloqueado: 162 59 42;
-  --bloqueado-claro: 248 227 223;
+  --linho: 242 242 242;
+  --borda: 217 217 217;
+  --regua: 230 230 230;
+  --tinta: 0 0 0;
+  --grafite: 64 64 64;
+  --nevoa: 112 112 112;
+  --aqua: 115 207 207;
+  --aqua-claro: 228 246 246;
+  --aqua-medio: 198 236 236;
+  --rose: 222 184 167;
+  --rose-claro: 245 234 229;
+  --oliva: 177 181 121;
+  --oliva-claro: 238 239 226;
+  --azul: 148 217 235;
+  --azul-claro: 225 244 249;
+  --cinza: 217 217 217;
+  --bom: 107 179 138;
+  --bom-claro: 228 242 233;
+  --neutro: 232 196 82;
+  --neutro-claro: 251 243 214;
+  --ruim: 217 103 90;
+  --ruim-claro: 249 226 223;
+  --perigo: 178 59 46;
+  /* status: pendente = neutro, em andamento = aqua, realizado = bom, bloqueado = ruim */
+  --pendente: var(--neutro);
+  --pendente-claro: var(--neutro-claro);
+  --andamento: var(--aqua);
+  --andamento-claro: var(--aqua-claro);
+  --concluido: var(--bom);
+  --concluido-claro: var(--bom-claro);
+  --bloqueado: var(--ruim);
+  --bloqueado-claro: var(--ruim-claro);
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* Tema: claro por padrão; "escuro" e "auto" (segue o aparelho / o claude.ai) escolhidos em Ajustes. */
 :root[data-tema='escuro'] {
-  --papel: 22 20 18;
-  --superficie: 33 30 27;
-  --linho: 44 40 36;
-  --borda: 60 55 49;
-  --tinta: 242 238 232;
-  --grafite: 200 192 180;
-  --nevoa: 150 142 130;
-  --couro: 214 160 112;
-  --couro-claro: 60 44 31;
-  --couro-escuro: 236 196 156;
-  --pendente: 230 170 80;
-  --pendente-claro: 58 44 21;
-  --andamento: 130 178 226;
-  --andamento-claro: 29 43 58;
-  --concluido: 128 198 152;
-  --concluido-claro: 28 48 36;
-  --bloqueado: 236 134 114;
-  --bloqueado-claro: 62 33 28;
+  --papel: 0 0 0;
+  --superficie: 20 20 20;
+  --linho: 32 32 32;
+  --borda: 70 70 70;
+  --regua: 44 44 44;
+  --tinta: 255 255 255;
+  --grafite: 210 210 210;
+  --nevoa: 155 155 155;
+  --aqua: 115 207 207;
+  --aqua-claro: 18 54 54;
+  --aqua-medio: 28 82 82;
+  --rose: 222 184 167;
+  --rose-claro: 60 42 35;
+  --oliva: 177 181 121;
+  --oliva-claro: 46 48 30;
+  --azul: 148 217 235;
+  --azul-claro: 22 52 62;
+  --cinza: 95 95 95;
+  --bom: 124 200 156;
+  --bom-claro: 24 52 36;
+  --neutro: 236 204 100;
+  --neutro-claro: 58 48 16;
+  --ruim: 236 124 110;
+  --ruim-claro: 64 28 24;
+  --perigo: 242 136 122;
   color-scheme: dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root[data-tema='auto']:not([data-theme='light']) {
-    --papel: 22 20 18;
-    --superficie: 33 30 27;
-    --linho: 44 40 36;
-    --borda: 60 55 49;
-    --tinta: 242 238 232;
-    --grafite: 200 192 180;
-    --nevoa: 150 142 130;
-    --couro: 214 160 112;
-    --couro-claro: 60 44 31;
-    --couro-escuro: 236 196 156;
-    --pendente: 230 170 80;
-    --pendente-claro: 58 44 21;
-    --andamento: 130 178 226;
-    --andamento-claro: 29 43 58;
-    --concluido: 128 198 152;
-    --concluido-claro: 28 48 36;
-    --bloqueado: 236 134 114;
-    --bloqueado-claro: 62 33 28;
+    --papel: 0 0 0;
+    --superficie: 20 20 20;
+    --linho: 32 32 32;
+    --borda: 70 70 70;
+    --regua: 44 44 44;
+    --tinta: 255 255 255;
+    --grafite: 210 210 210;
+    --nevoa: 155 155 155;
+    --aqua: 115 207 207;
+    --aqua-claro: 18 54 54;
+    --aqua-medio: 28 82 82;
+    --rose: 222 184 167;
+    --rose-claro: 60 42 35;
+    --oliva: 177 181 121;
+    --oliva-claro: 46 48 30;
+    --azul: 148 217 235;
+    --azul-claro: 22 52 62;
+    --cinza: 95 95 95;
+    --bom: 124 200 156;
+    --bom-claro: 24 52 36;
+    --neutro: 236 204 100;
+    --neutro-claro: 58 48 16;
+    --ruim: 236 124 110;
+    --ruim-claro: 64 28 24;
+    --perigo: 242 136 122;
     color-scheme: dark;
   }
 }
 
 :root[data-tema='auto'][data-theme='dark'] {
-  --papel: 22 20 18;
-  --superficie: 33 30 27;
-  --linho: 44 40 36;
-  --borda: 60 55 49;
-  --tinta: 242 238 232;
-  --grafite: 200 192 180;
-  --nevoa: 150 142 130;
-  --couro: 214 160 112;
-  --couro-claro: 60 44 31;
-  --couro-escuro: 236 196 156;
-  --pendente: 230 170 80;
-  --pendente-claro: 58 44 21;
-  --andamento: 130 178 226;
-  --andamento-claro: 29 43 58;
-  --concluido: 128 198 152;
-  --concluido-claro: 28 48 36;
-  --bloqueado: 236 134 114;
-  --bloqueado-claro: 62 33 28;
+  --papel: 0 0 0;
+  --superficie: 20 20 20;
+  --linho: 32 32 32;
+  --borda: 70 70 70;
+  --regua: 44 44 44;
+  --tinta: 255 255 255;
+  --grafite: 210 210 210;
+  --nevoa: 155 155 155;
+  --aqua: 115 207 207;
+  --aqua-claro: 18 54 54;
+  --aqua-medio: 28 82 82;
+  --rose: 222 184 167;
+  --rose-claro: 60 42 35;
+  --oliva: 177 181 121;
+  --oliva-claro: 46 48 30;
+  --azul: 148 217 235;
+  --azul-claro: 22 52 62;
+  --cinza: 95 95 95;
+  --bom: 124 200 156;
+  --bom-claro: 24 52 36;
+  --neutro: 236 204 100;
+  --neutro-claro: 58 48 16;
+  --ruim: 236 124 110;
+  --ruim-claro: 64 28 24;
+  --perigo: 242 136 122;
   color-scheme: dark;
 }
 
@@ -114,7 +155,7 @@
     background: rgb(var(--papel));
   }
   :focus-visible {
-    outline: 2px solid rgb(var(--couro));
+    outline: 2px solid rgb(var(--aqua));
     outline-offset: 2px;
   }
   @media (prefers-reduced-motion: reduce) {
@@ -133,15 +174,67 @@
 }
 
 @layer components {
+  /* Anatomia da página: sobrelinha, título com acento, seção */
+  .sobrelinha {
+    @apply text-[12px] font-black uppercase leading-none text-tinta;
+  }
+  .titulo-pagina {
+    @apply text-[26px] font-black uppercase leading-[1.05] tracking-[-0.01em];
+    text-wrap: balance;
+  }
+  .titulo-acento {
+    @apply text-aqua;
+  }
+  .titulo-secao {
+    @apply text-[14px] font-black uppercase tracking-[0.01em];
+  }
+
+  /* Marca-texto: preto para valores, aqua para palavra-chave, rosé para número curto, aqua leve para título de bloco */
+  .marca-texto {
+    @apply inline-block px-1.5 py-[3px] text-[11px] font-black uppercase leading-none tracking-[0.02em];
+  }
+  .mt-valor {
+    @apply marca-texto bg-tinta text-papel;
+  }
+  .mt-chave {
+    @apply marca-texto bg-aqua text-black;
+  }
+  .mt-numero {
+    @apply marca-texto bg-rose text-black;
+  }
+  .mt-bloco {
+    @apply marca-texto bg-aqua-medio text-tinta;
+  }
+
+  /* Destaques: fundo leve (mensagem principal), contorno aqua (decisão), contorno fino (nota) */
+  .destaque {
+    @apply flex items-start gap-3 rounded-md p-3.5 text-[14px] leading-snug text-tinta;
+  }
+  .destaque-leve {
+    @apply destaque bg-aqua-claro;
+  }
+  .destaque-aqua {
+    @apply destaque border-2 border-aqua;
+  }
+  .destaque-fino {
+    @apply destaque border border-borda;
+  }
+  .destaque-rose {
+    @apply destaque bg-rose-claro;
+  }
+  .destaque-erro {
+    @apply destaque bg-ruim-claro;
+  }
+
   .campo {
-    @apply w-full rounded-xl border border-borda bg-superficie px-3.5 py-3 text-[15px] text-tinta placeholder:text-nevoa
-      focus:border-couro focus:outline-none focus:ring-2 focus:ring-couro/15 transition;
+    @apply w-full rounded-md border border-borda bg-superficie px-3.5 py-3 text-[15px] text-tinta placeholder:text-nevoa
+      focus:border-tinta focus:outline-none focus:ring-2 focus:ring-aqua/50 transition;
   }
   .rotulo {
-    @apply mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-nevoa;
+    @apply mb-1.5 block text-[12px] font-bold text-nevoa;
   }
   .botao {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-[15px] font-medium transition
+    @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-3 text-[15px] font-bold transition
       active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none;
   }
   .botao-primario {
@@ -151,16 +244,19 @@
     @apply botao border border-borda bg-superficie text-tinta hover:bg-linho;
   }
   .botao-fantasma {
-    @apply botao px-3 py-2 text-grafite hover:bg-linho;
+    @apply botao px-3 py-2 font-semibold text-tinta hover:bg-linho;
+  }
+  .botao-perigo {
+    @apply botao border border-perigo/40 text-perigo hover:bg-ruim-claro;
   }
   .cartao {
-    @apply rounded-2xl border border-borda/70 bg-superficie shadow-cartao;
+    @apply rounded-md border border-borda bg-superficie;
   }
   .chip {
-    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium;
+    @apply inline-flex items-center gap-1 rounded px-2 py-[3px] text-[12px] font-semibold;
   }
-  .titulo-pagina {
-    @apply font-serif text-[28px] font-medium leading-none tracking-tight;
+  .linha {
+    @apply border-b border-regua;
   }
   .pb-seguro {
     padding-bottom: calc(env(safe-area-inset-bottom) + 6rem);

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AtaView } from '../components/AtaView'
 import { RevisaoAcoes, paraRevisao } from '../components/RevisaoAcoes'
-import { Cabecalho, CampoPessoas, Folha, useAviso, useConfirmar } from '../components/ui'
+import { Cabecalho, CampoPessoas, Folha, Secao, useAviso, useConfirmar } from '../components/ui'
 import { CEO, EM_ARTIFACT, MSG_SEM_IA } from '../lib/ambiente'
 import { useIA, useListas } from '../hooks/useDados'
 import { processarComIA } from '../lib/api'
@@ -292,7 +292,9 @@ export default function Importar() {
     return (
       <>
         <Cabecalho
+          sobrelinha="Importar material"
           titulo="Revisar"
+          acento="inputs"
           voltar={false}
           acoes={
             <>
@@ -312,56 +314,57 @@ export default function Importar() {
           }
         />
         <div className="space-y-4 px-4 pb-36">
-          <button onClick={() => setEditarLote(true)} className="cartao flex w-full items-center gap-3 p-3.5 text-left">
+          <button onClick={() => setEditarLote(true)} className="destaque-fino w-full items-center text-left">
             <div className="min-w-0 flex-1">
-              <div className="truncate font-medium">{r.lote.titulo || 'Sem título'}</div>
+              <div className="truncate font-bold">{r.lote.titulo || 'Sem título'}</div>
               <div className="truncate text-xs text-nevoa">
                 {[ROTULO_ORIGEM[r.lote.origem], formatarData(r.lote.data, true), r.lote.local].filter(Boolean).join(' · ')}
                 {r.lote.participantes.length > 0 && ` · ${r.lote.participantes.length} participantes`}
               </div>
             </div>
-            <span className="text-[13px] font-medium text-couro">Editar</span>
+            <span className="text-[13px] font-bold underline decoration-aqua decoration-2 underline-offset-4">Editar</span>
           </button>
 
           {!r.viaIA && ia && tipo === 'lista' && (
-            <div className="flex items-center gap-3 rounded-2xl bg-couro-claro p-3.5">
-              <Sparkles size={20} className="shrink-0 text-couro" />
-              <p className="flex-1 text-[13px] leading-snug text-couro-escuro">A IA pode melhorar títulos, áreas e responsáveis.</p>
-              <button className="botao rounded-lg bg-couro px-3 py-2 text-sm text-papel" onClick={refinarLista} disabled={processando}>
+            <div className="destaque-leve items-center">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-aqua text-black">
+                <Sparkles size={18} />
+              </span>
+              <p className="flex-1 text-[13px] leading-snug">A IA pode melhorar títulos, áreas e responsáveis.</p>
+              <button className="botao-primario px-3 py-2 text-sm" onClick={refinarLista} disabled={processando}>
                 {processando ? <Loader2 size={16} className="animate-spin" /> : 'Refinar'}
               </button>
             </div>
           )}
-          {r.aviso && <p className="rounded-xl bg-pendente-claro p-3 text-[13px] text-pendente">{r.aviso}</p>}
-          {erro && <p className="rounded-xl bg-bloqueado-claro p-3 text-sm text-bloqueado">{erro}</p>}
+          {r.aviso && <p className="destaque-rose text-[13px]">{r.aviso}</p>}
+          {erro && <p className="destaque-erro">{erro}</p>}
 
           {r.ata &&
             (verAta ? (
               <div>
                 <AtaView reuniao={reuniaoVirtual} ata={r.ata} />
-                <button className="mt-2 w-full py-2 text-[13px] font-medium text-couro" onClick={() => setVerAta(false)}>
+                <button className="mt-2 w-full py-2 text-[13px] font-bold" onClick={() => setVerAta(false)}>
                   Recolher ata
                 </button>
               </div>
             ) : (
-              <button onClick={() => setVerAta(true)} className="cartao block w-full p-4 text-left">
-                <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-couro">Ata executiva</div>
-                <div className="mt-1 font-serif text-xl font-medium">{r.ata.titulo}</div>
-                <p className="mt-1 line-clamp-3 text-[13px] leading-relaxed text-grafite">{r.ata.resumoExecutivo}</p>
-                <span className="mt-2 inline-flex items-center gap-1 text-[13px] font-medium text-couro">
+              <button onClick={() => setVerAta(true)} className="destaque-leve block w-full text-left">
+                <div className="sobrelinha">Ata executiva</div>
+                <div className="mt-1.5 text-[17px] font-black uppercase leading-tight">{r.ata.titulo}</div>
+                <p className="mt-1.5 line-clamp-3 text-[13px] leading-relaxed text-grafite">{r.ata.resumoExecutivo}</p>
+                <span className="mt-2 inline-flex items-center gap-1 text-[13px] font-bold">
                   Ver ata completa <ChevronDown size={14} />
                 </span>
               </button>
             ))}
 
-          <section>
-            <h2 className="mb-3 font-serif text-2xl font-medium">Ações</h2>
+          <Secao titulo="Ações sugeridas" className="!mt-6">
             <RevisaoAcoes acoes={r.acoes} aoMudar={(acoes) => atualizar({ acoes })} />
-          </section>
+          </Secao>
         </div>
 
         <div className="nao-imprimir fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] z-20 mx-auto max-w-xl px-4">
-          <div className="flex gap-2 rounded-2xl bg-papel/95 p-2 shadow-flutuante backdrop-blur">
+          <div className="flex gap-2 rounded-lg bg-papel/95 p-2 shadow-flutuante backdrop-blur">
             <button className="botao-secundario" onClick={() => atualizar({ etapa: 'material' })}>
               Voltar
             </button>
@@ -382,7 +385,7 @@ export default function Importar() {
             </div>
           )}
           {r.texto ? (
-            <div className="whitespace-pre-wrap rounded-xl bg-superficie p-3 text-[13px] leading-relaxed text-grafite">{r.texto}</div>
+            <div className="whitespace-pre-wrap rounded-md border border-borda p-3 text-[13px] leading-relaxed text-grafite">{r.texto}</div>
           ) : (
             <p className="text-sm text-nevoa">Sem texto colado.</p>
           )}
@@ -403,7 +406,10 @@ export default function Importar() {
   return (
     <>
       <Cabecalho
+        logo
+        sobrelinha="Inputs do CEO"
         titulo="Importar"
+        acento="material"
         subtitulo="Transcrição, resumo, lista de tarefas ou foto de anotações."
         acoes={
           temMaterial && (
@@ -415,13 +421,17 @@ export default function Importar() {
       />
       <div className="space-y-5 px-4 pb-8">
         <div className="grid grid-cols-2 gap-2">
-          <button className="cartao flex flex-col items-center gap-1.5 p-4 text-sm font-medium" onClick={() => arquivoRef.current?.click()}>
-            <Paperclip size={22} className="text-couro" />
+          <button className="cartao flex flex-col items-center gap-1.5 p-4 text-sm font-bold" onClick={() => arquivoRef.current?.click()}>
+            <span className="mb-1 flex h-11 w-11 items-center justify-center rounded-full bg-aqua text-black">
+              <Paperclip size={20} />
+            </span>
             Escolher arquivo
             <span className="text-[11px] font-normal text-nevoa">TXT, DOCX, PDF, SRT, VTT</span>
           </button>
-          <button className="cartao flex flex-col items-center gap-1.5 p-4 text-sm font-medium" onClick={() => cameraRef.current?.click()}>
-            <Camera size={22} className="text-couro" />
+          <button className="cartao flex flex-col items-center gap-1.5 p-4 text-sm font-bold" onClick={() => cameraRef.current?.click()}>
+            <span className="mb-1 flex h-11 w-11 items-center justify-center rounded-full bg-rose text-black">
+              <Camera size={20} />
+            </span>
             Foto de anotações
             <span className="text-[11px] font-normal text-nevoa">caderno, quadro, print</span>
           </button>
@@ -457,7 +467,7 @@ export default function Importar() {
               ))}
             </div>
             {errosArquivo.map((e) => (
-              <p key={e} className="text-[13px] text-bloqueado">
+              <p key={e} className="text-[13px] text-perigo">
                 {e}
               </p>
             ))}
@@ -491,7 +501,7 @@ export default function Importar() {
                     key={t}
                     onClick={() => atualizar({ tipo: r.tipo === t ? null : t })}
                     className={clsx(
-                      'rounded-xl border px-2 py-2.5 text-[13px] font-medium leading-tight',
+                      'rounded-md border px-2 py-2.5 text-[13px] font-bold leading-tight',
                       tipo === t ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-superficie text-grafite',
                     )}
                   >
@@ -539,7 +549,7 @@ export default function Importar() {
           </>
         )}
 
-        {erro && <p className="rounded-xl bg-bloqueado-claro p-3 text-sm text-bloqueado">{erro}</p>}
+        {erro && <p className="destaque-erro">{erro}</p>}
 
         <button className="botao-primario w-full py-3.5" disabled={!temMaterial || processando} onClick={interpretar}>
           {processando ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
@@ -557,7 +567,7 @@ export default function Importar() {
         )}
 
         {!EM_ARTIFACT && (
-          <Link to="/captura" className="flex items-center justify-center gap-2 py-2 text-[13px] font-medium text-grafite">
+          <Link to="/captura" className="flex items-center justify-center gap-2 py-2 text-[13px] font-semibold text-grafite">
             <Mic size={15} /> Prefere gravar aqui? Gravar no celular
           </Link>
         )}
@@ -570,9 +580,9 @@ function OpcaoGerar({ ativa, titulo, texto, onClick }: { ativa: boolean; titulo:
   return (
     <button
       onClick={onClick}
-      className={clsx('rounded-2xl border p-3 text-left transition', ativa ? 'border-tinta bg-superficie ring-1 ring-tinta' : 'border-borda bg-superficie')}
+      className={clsx('rounded-md border p-3 text-left transition', ativa ? 'border-aqua bg-aqua-claro ring-1 ring-aqua' : 'border-borda bg-superficie')}
     >
-      <div className="flex items-center gap-2 text-sm font-medium">
+      <div className="flex items-center gap-2 text-sm font-bold">
         <span className={clsx('h-4 w-4 rounded-full border-2', ativa ? 'border-[5px] border-tinta' : 'border-borda')} />
         {titulo}
       </div>

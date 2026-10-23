@@ -2,74 +2,90 @@ import type { ReactNode } from 'react'
 import { ROTULO_ORIGEM } from '../lib/rotulos'
 import type { AtaExecutiva, Reuniao } from '../lib/types'
 import { formatarData, formatarDuracao } from '../lib/util'
+import { Secao } from './ui'
+
+/** Título em caixa alta com a última palavra em aqua, como nas páginas do padrão. */
+export function TituloDocumento({ texto }: { texto: string }) {
+  const corte = texto.trimEnd().lastIndexOf(' ')
+  return (
+    <h2 className="titulo-pagina mt-1.5 text-[22px]">
+      {corte > 0 ? (
+        <>
+          {texto.slice(0, corte)} <span className="titulo-acento">{texto.slice(corte + 1)}</span>
+        </>
+      ) : (
+        texto
+      )}
+    </h2>
+  )
+}
 
 /** Ata executiva em formato de documento (também usada na impressão/PDF). */
 export function AtaView({ reuniao, ata, planoDeAcao }: { reuniao: Reuniao; ata: AtaExecutiva; planoDeAcao?: ReactNode }) {
   const participantes = ata.participantes.length ? ata.participantes : reuniao.participantes
   return (
-    <article className="cartao imprimivel p-5">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-couro">Ata executiva</div>
-      <h2 className="mt-2 font-serif text-[24px] font-medium leading-tight">{ata.titulo || reuniao.titulo}</h2>
-      <div className="mt-2 text-[13px] text-grafite">
-        {[
-          formatarData(reuniao.data, true),
-          reuniao.hora,
-          ROTULO_ORIGEM[reuniao.origem],
-          reuniao.local,
-          reuniao.duracaoSeg ? formatarDuracao(reuniao.duracaoSeg) : '',
-        ]
-          .filter(Boolean)
-          .join(' · ')}
-      </div>
-      {participantes.length > 0 && (
-        <div className="mt-1 text-[13px] text-grafite">
-          <span className="text-nevoa">Participantes:</span> {participantes.join(', ')}
+    <article className="imprimivel space-y-6">
+      <header>
+        <div className="sobrelinha">Ata executiva</div>
+        <TituloDocumento texto={ata.titulo || reuniao.titulo || 'Reunião'} />
+        <div className="mt-2 text-[13px] text-grafite">
+          {[
+            formatarData(reuniao.data, true),
+            reuniao.hora,
+            ROTULO_ORIGEM[reuniao.origem],
+            reuniao.local,
+            reuniao.duracaoSeg ? formatarDuracao(reuniao.duracaoSeg) : '',
+          ]
+            .filter(Boolean)
+            .join(' · ')}
         </div>
-      )}
+        {participantes.length > 0 && (
+          <div className="mt-1 text-[13px] text-grafite">
+            <span className="font-bold text-tinta">Participantes:</span> {participantes.join(', ')}
+          </div>
+        )}
+      </header>
 
-      <Secao titulo="Resumo executivo">
+      <div className="destaque-leve block">
+        <div className="mt-bloco mb-2 bg-aqua">Resumo executivo</div>
         <p className="text-[15px] leading-relaxed">{ata.resumoExecutivo}</p>
-      </Secao>
+      </div>
 
       {ata.temas.length > 0 && (
         <Secao titulo="Temas discutidos">
-          <div className="space-y-4">
+          <ol className="space-y-4">
             {ata.temas.map((t, i) => (
-              <div key={i}>
-                <h4 className="font-medium">{t.tema}</h4>
-                <ul className="mt-1 space-y-1 text-[14px] leading-relaxed text-grafite">
-                  {t.pontos.map((p, j) => (
-                    <li key={j} className="flex gap-2">
-                      <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-couro" />
-                      {p}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <li key={i} className="flex gap-3">
+                <span className="w-7 shrink-0 text-[15px] font-black leading-snug">{String(i + 1).padStart(2, '0')}.</span>
+                <div className="min-w-0">
+                  <h4 className="font-bold leading-snug">{t.tema}</h4>
+                  <ul className="mt-1 space-y-1 text-[14px] leading-relaxed text-grafite">
+                    {t.pontos.map((p, j) => (
+                      <li key={j} className="flex gap-2">
+                        <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-tinta" />
+                        {p}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </li>
             ))}
-          </div>
+          </ol>
         </Secao>
       )}
 
-      {ata.decisoes.length > 0 && <Lista titulo="Decisões" itens={ata.decisoes} />}
-      {ata.pontosDeAtencao.length > 0 && <Lista titulo="Pontos de atenção" itens={ata.pontosDeAtencao} />}
+      {ata.decisoes.length > 0 && <Lista titulo="Decisões" itens={ata.decisoes} estilo="destaque-aqua" />}
+      {ata.pontosDeAtencao.length > 0 && <Lista titulo="Pontos de atenção" itens={ata.pontosDeAtencao} estilo="destaque-rose" />}
       {planoDeAcao && <Secao titulo="Plano de ação">{planoDeAcao}</Secao>}
     </article>
   )
 }
 
-function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
+/** Decisões em contorno aqua; pontos de atenção em rosé leve. */
+function Lista({ titulo, itens, estilo }: { titulo: string; itens: string[]; estilo: string }) {
   return (
-    <section className="mt-6 border-t border-borda pt-4">
-      <h3 className="rotulo">{titulo}</h3>
-      {children}
-    </section>
-  )
-}
-
-function Lista({ titulo, itens }: { titulo: string; itens: string[] }) {
-  return (
-    <Secao titulo={titulo}>
+    <div className={`${estilo} block`}>
+      <h3 className="titulo-secao mb-2">{titulo}</h3>
       <ul className="space-y-1.5 text-[14px] leading-relaxed">
         {itens.map((d, i) => (
           <li key={i} className="flex gap-2">
@@ -78,6 +94,6 @@ function Lista({ titulo, itens }: { titulo: string; itens: string[] }) {
           </li>
         ))}
       </ul>
-    </Secao>
+    </div>
   )
 }

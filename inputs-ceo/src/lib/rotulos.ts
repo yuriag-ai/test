@@ -51,7 +51,8 @@ export const AREAS_PADRAO = [
   'Tecnologia',
 ]
 
-export const MARCAS_PADRAO = ['Arezzo', 'Schutz', 'Anacapri', 'Alexandre Birman', 'Fiever', 'Alme', 'Reserva', 'Vans']
+/** Marcas da Arezzo&CO (Shoes & Bags) */
+export const MARCAS_PADRAO = ['Arezzo', 'Schutz', 'Anacapri', 'Alexandre Birman', 'Vicenza', 'Paris Texas', 'Vans']
 
 export function resumoSalvamento(criados: number, atualizados: number): string {
   const partes: string[] = []

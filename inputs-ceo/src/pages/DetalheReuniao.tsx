@@ -2,8 +2,8 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { ChevronDown, FileText, Printer, Share2, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { AtaView } from '../components/AtaView'
-import { Cabecalho, SeletorStatus, SeloPrazo, useAviso, useCompartilhar, useConfirmar } from '../components/ui'
+import { AtaView, TituloDocumento } from '../components/AtaView'
+import { Cabecalho, Secao, SeletorStatus, SeloPrazo, useAviso, useCompartilhar, useConfirmar } from '../components/ui'
 import { EM_ARTIFACT } from '../lib/ambiente'
 import { db, excluirReuniao, montarAudio, mudarStatus } from '../lib/db'
 import { textoAta } from '../lib/exportar'
@@ -42,7 +42,7 @@ export default function DetalheReuniao() {
   if (reuniao === null) {
     return (
       <>
-        <Cabecalho titulo="Reunião" voltar="/reunioes" />
+        <Cabecalho sobrelinha="Reunião" voltar="/reunioes" />
         <p className="px-4 py-12 text-center text-sm text-nevoa">Reunião não encontrada.</p>
       </>
     )
@@ -76,7 +76,7 @@ export default function DetalheReuniao() {
     <>
       <Cabecalho
         voltar="/reunioes"
-        titulo={<span className="text-sm font-semibold text-nevoa">{formatarData(reuniao.data, true)}</span>}
+        sobrelinha={formatarData(reuniao.data, true)}
         acoes={
           <>
             <button aria-label="Compartilhar" className="rounded-full p-2 hover:bg-linho" onClick={compartilhar}>
@@ -87,25 +87,27 @@ export default function DetalheReuniao() {
                 <Printer size={19} />
               </button>
             )}
-            <button aria-label="Excluir" className="rounded-full p-2 text-bloqueado hover:bg-bloqueado-claro" onClick={excluir}>
+            <button aria-label="Excluir" className="rounded-full p-2 text-perigo hover:bg-ruim-claro" onClick={excluir}>
               <Trash2 size={19} />
             </button>
           </>
         }
       />
-      <div className="space-y-5 px-4 pb-8">
+      <div className="space-y-6 px-4 pb-8 pt-1">
         {reuniao.ata ? (
           <AtaView reuniao={reuniao} ata={reuniao.ata} planoDeAcao={plano} />
         ) : (
-          <article className="cartao imprimivel p-5">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-couro">Plano de ação</div>
-            <h2 className="mt-2 font-serif text-[24px] font-medium leading-tight">{reuniao.titulo || 'Reunião'}</h2>
-            <div className="mt-2 text-[13px] text-grafite">
-              {[ROTULO_ORIGEM[reuniao.origem], reuniao.local, reuniao.duracaoSeg ? formatarDuracao(reuniao.duracaoSeg) : '']
-                .filter(Boolean)
-                .join(' · ')}
-            </div>
-            <div className="mt-5 border-t border-borda pt-4">{plano}</div>
+          <article className="imprimivel space-y-6">
+            <header>
+              <div className="sobrelinha">Plano de ação</div>
+              <TituloDocumento texto={reuniao.titulo || 'Reunião'} />
+              <div className="mt-2 text-[13px] text-grafite">
+                {[ROTULO_ORIGEM[reuniao.origem], reuniao.local, reuniao.duracaoSeg ? formatarDuracao(reuniao.duracaoSeg) : '']
+                  .filter(Boolean)
+                  .join(' · ')}
+              </div>
+            </header>
+            <Secao titulo="Ações">{plano}</Secao>
           </article>
         )}
 
@@ -116,20 +118,19 @@ export default function DetalheReuniao() {
         )}
 
         {audioUrl && (
-          <section className="nao-imprimir">
-            <div className="rotulo">Áudio</div>
+          <Secao titulo="Áudio" className="nao-imprimir">
             <audio controls src={audioUrl} className="w-full" />
-          </section>
+          </Secao>
         )}
 
         {reuniao.transcricao && (
-          <section className="nao-imprimir">
-            <button onClick={() => setVerTranscricao(!verTranscricao)} className="flex w-full items-center justify-between py-2">
-              <span className="rotulo mb-0">Transcrição completa</span>
-              <ChevronDown size={18} className={verTranscricao ? 'rotate-180 text-nevoa' : 'text-nevoa'} />
+          <section className="nao-imprimir border-t border-tinta">
+            <button onClick={() => setVerTranscricao(!verTranscricao)} className="flex w-full items-center justify-between py-3">
+              <span className="titulo-secao">Transcrição completa</span>
+              <ChevronDown size={18} className={verTranscricao ? 'rotate-180' : ''} />
             </button>
             {verTranscricao && (
-              <div className="cartao whitespace-pre-wrap p-4 text-[14px] leading-relaxed text-grafite">{reuniao.transcricao}</div>
+              <div className="whitespace-pre-wrap rounded-md border border-borda p-4 text-[14px] leading-relaxed text-grafite">{reuniao.transcricao}</div>
             )}
           </section>
         )}
@@ -141,22 +142,27 @@ export default function DetalheReuniao() {
 function PlanoDeAcao({ inputs, reuniaoId }: { inputs: Input[]; reuniaoId: string }) {
   if (!inputs.length) return <p className="text-sm text-nevoa">Nenhum input criado a partir desta reunião.</p>
   return (
-    <ul className="divide-y divide-borda">
-      {inputs.map((i) => (
-        <li key={i.id} className="py-3 first:pt-0">
-          <Link to={`/inputs/${i.id}`} className="block">
-            <div className="text-[15px] font-medium leading-snug">
-              <span className="text-nevoa">#{i.numero}</span> {i.titulo}
-              {i.reuniaoId !== reuniaoId && <span className="chip ml-1.5 bg-andamento-claro py-0.5 align-middle text-andamento">retomado</span>}
+    <ol className="divide-y divide-regua">
+      {inputs.map((i, indice) => (
+        <li key={i.id} className="flex gap-3 py-3 first:pt-0">
+          <span className="w-7 shrink-0 text-[17px] font-black leading-snug">{String(indice + 1).padStart(2, '0')}.</span>
+          <div className="min-w-0 flex-1">
+            <Link to={`/inputs/${i.id}`} className="block">
+              <div className="text-[15px] font-bold leading-snug">
+                {i.titulo}
+                {i.reuniaoId !== reuniaoId && <span className="mt-bloco ml-1.5 align-middle">Retomado</span>}
+              </div>
+              <div className="mt-1 text-[13px] text-grafite">
+                {i.responsaveis.join(', ') || 'Responsável a definir'} · Input #{i.numero}
+              </div>
+            </Link>
+            <div className="mt-1.5 flex items-center gap-2.5">
+              <SeletorStatus status={i.status} aoMudar={(s) => void mudarStatus(i.id, s)} />
+              <SeloPrazo prazo={i.prazo} concluido={i.status === 'concluido'} />
             </div>
-            <div className="mt-1 text-[13px] text-grafite">{i.responsaveis.join(', ') || 'Responsável a definir'}</div>
-          </Link>
-          <div className="mt-1.5 flex items-center gap-2.5">
-            <SeletorStatus status={i.status} aoMudar={(s) => void mudarStatus(i.id, s)} />
-            <SeloPrazo prazo={i.prazo} concluido={i.status === 'concluido'} />
           </div>
         </li>
       ))}
-    </ul>
+    </ol>
   )
 }

@@ -204,12 +204,12 @@ export default function Captura() {
         <button aria-label="Fechar" onClick={sair} className="-ml-2 rounded-full p-2 hover:bg-linho">
           <X size={22} />
         </button>
-        <div className="flex-1 text-sm font-semibold text-grafite">
+        <div className="sobrelinha flex-1">
           {gravando ? (cap.estado === 'pausado' ? 'Pausado' : 'Gravando') : reuniaoId ? 'Captura' : 'Nova captura'}
         </div>
         {(gravando || segundosTotais > 0) && (
           <div className="flex items-center gap-2 font-mono text-sm tabular-nums text-grafite">
-            {cap.estado === 'gravando' && <span className="h-2 w-2 animate-pulse rounded-full bg-bloqueado" />}
+            {cap.estado === 'gravando' && <span className="h-2 w-2 animate-pulse rounded-full bg-ruim" />}
             {formatarDuracao(segundosTotais)}
           </div>
         )}
@@ -221,7 +221,7 @@ export default function Captura() {
             <input
               value={titulo}
               onChange={(e) => setTitulo(e.target.value)}
-              className="w-full bg-transparent font-serif text-[24px] font-medium leading-tight outline-none placeholder:text-borda"
+              className="w-full bg-transparent text-[22px] font-black uppercase leading-tight outline-none placeholder:text-borda"
               placeholder="Título da reunião"
             />
             <div className="grid grid-cols-2 gap-2">
@@ -245,12 +245,14 @@ export default function Captura() {
               onClick={iniciar}
               disabled={!suportaGravacao && !suportaTranscricao}
               aria-label="Começar a gravar"
-              className="group relative flex h-36 w-36 items-center justify-center rounded-full bg-tinta text-papel shadow-flutuante transition active:scale-95 disabled:opacity-40"
+              className="group relative flex h-36 w-36 items-center justify-center rounded-full bg-aqua text-black transition active:scale-95 disabled:opacity-40"
             >
-              <span className="absolute inset-0 rounded-full ring-1 ring-tinta/10 transition group-hover:scale-110" />
+              <span className="absolute -inset-2 rounded-full border-2 border-aqua/40 transition group-hover:scale-105" />
               <Mic size={48} strokeWidth={1.5} />
             </button>
-            <p className="mt-5 font-serif text-xl font-medium">Toque para começar</p>
+            <p className="mt-6 text-[18px] font-black uppercase">
+              Toque para <span className="text-aqua">começar</span>
+            </p>
             <p className="mt-1 max-w-xs text-[13px] leading-relaxed text-grafite">
               O microfone capta o ambiente. Avise os presentes que a conversa será registrada.
             </p>
@@ -265,7 +267,7 @@ export default function Captura() {
 
         {gravando && (
           <section className="flex flex-col items-center pb-2 pt-4">
-            <div className="font-serif text-5xl font-medium lining-nums tabular-nums tracking-tight">{formatarDuracao(segundosTotais)}</div>
+            <div className="text-5xl font-black tabular-nums tracking-tight">{formatarDuracao(segundosTotais)}</div>
             <MedidorNivel nivel={cap.nivel} ativo={cap.estado === 'gravando'} />
           </section>
         )}
@@ -273,11 +275,11 @@ export default function Captura() {
         {(gravando || temConteudo) && (
           <section>
             <div className="mb-1.5 flex items-center justify-between">
-              <span className="rotulo mb-0">Transcrição</span>
+              <span className="titulo-secao">Transcrição</span>
               {!gravando && <span className="text-[11px] text-nevoa">Toque para corrigir</span>}
             </div>
             {gravando ? (
-              <div className="cartao max-h-[42vh] min-h-[30vh] overflow-y-auto whitespace-pre-wrap p-4 text-[15px] leading-relaxed">
+              <div className="max-h-[42vh] min-h-[30vh] overflow-y-auto whitespace-pre-wrap rounded-md border border-borda p-4 text-[15px] leading-relaxed">
                 {transcricao || (!cap.interino && <span className="text-nevoa">{transcrever && suportaTranscricao ? 'Ouvindo…' : 'Gravando áudio. Use as anotações abaixo para registrar pontos.'}</span>)}
                 {cap.interino && <span className="text-nevoa"> {cap.interino}</span>}
                 <div ref={fimTranscricao} />
@@ -308,14 +310,14 @@ export default function Captura() {
           </div>
         )}
 
-        {cap.aviso && <p className="rounded-xl bg-pendente-claro p-3 text-[13px] text-pendente">{cap.aviso}</p>}
-        {erro && <p className="rounded-xl bg-bloqueado-claro p-3 text-sm text-bloqueado">{erro}</p>}
+        {cap.aviso && <p className="destaque-rose text-[13px]">{cap.aviso}</p>}
+        {erro && <p className="destaque-erro">{erro}</p>}
 
         {!gravando && temConteudo && (
           <section className="space-y-3">
             {audioUrl && <audio controls src={audioUrl} className="w-full" />}
             {ia === false && (
-              <p className="rounded-xl bg-linho p-3 text-[13px] leading-relaxed text-grafite">
+              <p className="destaque-fino text-[13px] leading-relaxed text-grafite">
                 A geração de Ata e Plano de Ação precisa da IA. {MSG_SEM_IA} A captura fica salva em Reuniões.
               </p>
             )}
@@ -367,7 +369,7 @@ export default function Captura() {
 
 function BotaoControle({ rotulo, onClick, children }: { rotulo: string; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button onClick={onClick} className="flex w-20 flex-col items-center gap-1 text-[12px] font-medium text-grafite">
+    <button onClick={onClick} className="flex w-20 flex-col items-center gap-1 text-[12px] font-bold text-grafite">
       <span className="flex h-12 w-12 items-center justify-center rounded-full border border-borda bg-superficie">{children}</span>
       {rotulo}
     </button>
@@ -384,7 +386,7 @@ function MedidorNivel({ nivel, ativo }: { nivel: number; ativo: boolean }) {
         return (
           <span
             key={i}
-            className={clsx('w-[3px] rounded-full transition-[height] duration-100', ativo ? 'bg-tinta' : 'bg-borda')}
+            className={clsx('w-[3px] rounded-full transition-[height] duration-100', ativo ? 'bg-aqua' : 'bg-borda')}
             style={{ height: `${altura * 100}%` }}
           />
         )
@@ -440,11 +442,11 @@ function Interruptor({
   return (
     <label className={clsx('cartao flex items-center gap-3 p-3.5', desabilitado && 'opacity-60')}>
       <div className="flex-1">
-        <div className="text-sm font-medium">{rotulo}</div>
+        <div className="text-sm font-bold">{rotulo}</div>
         <div className="text-[12px] text-nevoa">{descricao}</div>
       </div>
       <input type="checkbox" className="peer sr-only" checked={ligado} disabled={desabilitado} onChange={(e) => aoMudar(e.target.checked)} />
-      <span className="relative h-7 w-12 rounded-full bg-borda transition peer-checked:bg-tinta after:absolute after:left-0.5 after:top-0.5 after:h-6 after:w-6 after:rounded-full after:bg-superficie after:shadow after:transition peer-checked:after:translate-x-5" />
+      <span className="relative h-7 w-12 rounded-full bg-borda transition peer-checked:bg-aqua after:absolute after:left-0.5 after:top-0.5 after:h-6 after:w-6 after:rounded-full after:bg-superficie after:shadow after:transition peer-checked:after:translate-x-5" />
     </label>
   )
 }

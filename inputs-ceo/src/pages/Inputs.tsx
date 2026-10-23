@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Cabecalho, Folha, SeletorStatus, SeloPrazo, SeloPrioridade, Vazio, useAviso } from '../components/ui'
 import { useListas } from '../hooks/useDados'
-import { CEO, EM_ARTIFACT, EMPRESA } from '../lib/ambiente'
+import { CEO, EM_ARTIFACT } from '../lib/ambiente'
 import { db, mudarStatus } from '../lib/db'
 import { exportarCSV } from '../lib/exportar'
 import { ORIGENS, ROTULO_ORIGEM, ROTULO_STATUS, STATUS } from '../lib/rotulos'
@@ -118,7 +118,7 @@ export default function Inputs() {
   if (inputs && inputs.length === 0) {
     return (
       <>
-        <Cabecalho titulo={<TituloMarca />} />
+        <Cabecalho sobrelinha="Escritório do CEO" titulo="Inputs" acento="do CEO" logo />
         <Vazio
           icone={<ClipboardList size={28} />}
           titulo="Nenhum input ainda"
@@ -146,7 +146,10 @@ export default function Inputs() {
   return (
     <>
       <Cabecalho
-        titulo={<TituloMarca />}
+        sobrelinha="Escritório do CEO"
+        titulo="Inputs"
+        acento="do CEO"
+        logo
         acoes={
           <button aria-label="Mais opções" className="rounded-full p-2 hover:bg-linho" onClick={() => setMenu(true)}>
             <MoreHorizontal size={22} />
@@ -169,11 +172,11 @@ export default function Inputs() {
           <button
             aria-label="Filtros"
             onClick={() => setFolhaFiltros(true)}
-            className={clsx('relative rounded-xl border px-3.5', filtrosAtivos ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-superficie')}
+            className={clsx('relative rounded-md border px-3.5', filtrosAtivos ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-superficie')}
           >
             <SlidersHorizontal size={18} />
             {filtrosAtivos > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-couro text-[10px] font-semibold text-papel">
+              <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-aqua text-[10px] font-black text-black">
                 {filtrosAtivos}
               </span>
             )}
@@ -186,27 +189,31 @@ export default function Inputs() {
               key={r.valor}
               onClick={() => setFiltros((f) => ({ ...f, rapido: r.valor }))}
               className={clsx(
-                'shrink-0 rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition',
-                filtros.rapido === r.valor ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-superficie text-grafite',
-                r.valor === 'atrasados' && contagens.atrasados > 0 && filtros.rapido !== r.valor && 'text-bloqueado',
+                'flex shrink-0 items-center gap-1.5 rounded-md border px-3 py-1.5 text-[13px] font-bold transition',
+                filtros.rapido === r.valor ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-superficie text-tinta',
               )}
             >
-              {r.rotulo} <span className="ml-0.5 opacity-60">{contagens[r.valor]}</span>
+              {r.rotulo}
+              {r.valor === 'atrasados' && contagens.atrasados > 0 && filtros.rapido !== r.valor ? (
+                <span className="mt-valor">{contagens[r.valor]}</span>
+              ) : (
+                <span className="font-semibold opacity-60">{contagens[r.valor]}</span>
+              )}
             </button>
           ))}
         </div>
       </div>
 
-      <div className="mt-2 space-y-5 px-4">
+      <div className="mt-1 space-y-6 px-4">
         {grupos.map(([grupo, itens]) => (
           <section key={grupo}>
             {filtros.agrupar !== 'nenhum' && (
-              <h2 className="mb-2 flex items-baseline justify-between border-b border-borda pb-1.5 pt-2">
-                <span className="font-serif text-xl font-medium">{grupo}</span>
-                <span className="text-xs text-nevoa">{itens.length}</span>
+              <h2 className="mb-1 flex items-center justify-between pt-2">
+                <span className="mt-bloco">{grupo}</span>
+                <span className="text-[12px] font-semibold text-nevoa">{itens.length}</span>
               </h2>
             )}
-            <ul className="space-y-2.5">
+            <ul>
               {itens.map((i) => (
                 <li key={i.id}>
                   <CartaoInput
@@ -318,17 +325,6 @@ export default function Inputs() {
   )
 }
 
-function TituloMarca() {
-  return (
-    <div>
-      <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-couro">
-        {EMPRESA ? `${EMPRESA} · ` : ''}Escritório do CEO
-      </div>
-      <h1 className="titulo-pagina mt-1">Inputs</h1>
-    </div>
-  )
-}
-
 function alternar<T>(lista: T[], valor: T): T[] {
   return lista.includes(valor) ? lista.filter((v) => v !== valor) : [...lista, valor]
 }
@@ -354,8 +350,8 @@ function GrupoOpcoes({
             key={valor}
             onClick={() => aoTocar(valor)}
             className={clsx(
-              'rounded-full border px-3 py-1.5 text-[13px]',
-              selecionados.includes(valor) ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-superficie text-grafite',
+              'rounded-md border px-3 py-1.5 text-[13px] font-semibold',
+              selecionados.includes(valor) ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-superficie text-tinta',
             )}
           >
             {texto}
@@ -392,6 +388,7 @@ function agrupar(itens: Input[], modo: Agrupar): [string, Input[]][] {
   })
 }
 
+/** Linha numerada do padrão: número em destaque, título, metadados e status, separadas por régua fina. */
 export function CartaoInput({
   input: i,
   anexos = 0,
@@ -404,49 +401,41 @@ export function CartaoInput({
   const navigate = useNavigate()
   const concluido = i.status === 'concluido'
   return (
-    <article
-      onClick={() => navigate(`/inputs/${i.id}`)}
-      className="cartao cursor-pointer p-3.5 transition active:scale-[0.99]"
-    >
-      <div className="flex items-center gap-1.5 text-[11px] text-nevoa">
-        <span className="font-semibold text-grafite">#{i.numero}</span>
-        <span>·</span>
-        <span>{ROTULO_ORIGEM[i.origem]}</span>
-        <span>·</span>
-        <span>{formatarData(i.dataInput)}</span>
-        {i.local && (
-          <>
-            <span>·</span>
-            <span className="truncate">{i.local}</span>
-          </>
-        )}
+    <article onClick={() => navigate(`/inputs/${i.id}`)} className="linha flex cursor-pointer gap-3 py-4 transition active:bg-linho">
+      <div className={clsx('w-11 shrink-0 text-[20px] font-black leading-none tabular-nums', concluido && 'text-nevoa')}>
+        {String(i.numero).padStart(2, '0')}.
       </div>
-      <h3 className={clsx('mt-1 text-[15px] font-medium leading-snug', concluido && 'text-nevoa line-through decoration-borda')}>
-        {i.titulo}
-      </h3>
-      <div className="mt-2 flex flex-wrap items-center gap-1.5">
-        {i.responsaveis.length ? (
-          i.responsaveis.map((r) => (
-            <span key={r} className="chip bg-linho text-tinta">
-              {r}
+      <div className="min-w-0 flex-1">
+        <h3 className={clsx('text-[15px] font-bold leading-snug', concluido && 'text-nevoa line-through decoration-borda')}>
+          {i.titulo}
+        </h3>
+        <div className="mt-1 truncate text-[12px] text-nevoa">
+          {[ROTULO_ORIGEM[i.origem], formatarData(i.dataInput), i.local].filter(Boolean).join(' · ')}
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          {i.responsaveis.length ? (
+            i.responsaveis.map((r) => (
+              <span key={r} className="chip bg-linho text-tinta">
+                {r}
+              </span>
+            ))
+          ) : (
+            <span className="chip bg-pendente-claro text-tinta">Sem responsável</span>
+          )}
+          {i.area && <span className="px-1 text-[12px] font-semibold text-grafite">{i.area}</span>}
+          {i.marca && <span className="chip border border-borda text-[11px] uppercase tracking-wide text-tinta">{i.marca}</span>}
+        </div>
+        <div className="mt-2.5 flex flex-wrap items-center gap-2">
+          <SeletorStatus status={i.status} aoMudar={aoMudarStatus} />
+          <SeloPrioridade prioridade={i.prioridade} />
+          <SeloPrazo prazo={i.prazo} concluido={concluido} />
+          <span className="flex-1" />
+          {anexos > 0 && (
+            <span className="flex items-center gap-0.5 text-[12px] text-nevoa">
+              <Paperclip size={13} /> {anexos}
             </span>
-          ))
-        ) : (
-          <span className="chip border border-dashed border-pendente/50 text-pendente">Sem responsável</span>
-        )}
-        {i.area && <span className="chip text-grafite">{i.area}</span>}
-        {i.marca && <span className="chip bg-couro-claro text-couro-escuro">{i.marca}</span>}
-      </div>
-      <div className="mt-2.5 flex items-center gap-2.5">
-        <SeletorStatus status={i.status} aoMudar={aoMudarStatus} />
-        <SeloPrioridade prioridade={i.prioridade} />
-        <SeloPrazo prazo={i.prazo} concluido={concluido} />
-        <span className="flex-1" />
-        {anexos > 0 && (
-          <span className="flex items-center gap-0.5 text-xs text-nevoa">
-            <Paperclip size={13} /> {anexos}
-          </span>
-        )}
+          )}
+        </div>
       </div>
     </article>
   )

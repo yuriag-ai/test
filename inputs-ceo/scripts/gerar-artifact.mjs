@@ -28,7 +28,7 @@ const carga = arquivoCarga
   : ''
 
 const fontes =
-  'https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,600&family=Inter:wght@400;500;600&display=swap'
+  'https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap'
 
 const html = `<title>Inputs CEO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">

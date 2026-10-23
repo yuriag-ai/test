@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { AtaView } from '../components/AtaView'
 import { RevisaoAcoes, paraRevisao, type AcaoRevisavel } from '../components/RevisaoAcoes'
-import { Cabecalho, useAviso } from '../components/ui'
+import { Cabecalho, Secao, useAviso } from '../components/ui'
 import { aplicarRevisao, atualizarReuniao, db } from '../lib/db'
 import { resumoSalvamento, textoBotaoSalvar } from '../lib/rotulos'
 
@@ -23,7 +23,7 @@ export default function Revisao() {
   if (reuniao === null) {
     return (
       <>
-        <Cabecalho titulo="Revisão" voltar="/reunioes" />
+        <Cabecalho sobrelinha="Revisão" voltar="/reunioes" />
         <p className="px-4 py-12 text-center text-sm text-nevoa">Reunião não encontrada.</p>
       </>
     )
@@ -49,23 +49,24 @@ export default function Revisao() {
   return (
     <>
       <Cabecalho
-        titulo={reuniao.ata ? 'Ata e plano de ação' : 'Plano de ação'}
+        sobrelinha={reuniao.titulo || 'Revisão'}
+        titulo={reuniao.ata ? 'Ata e plano' : 'Plano'}
+        acento="de ação"
         voltar={`/captura/${reuniao.id}`}
         subtitulo="Revise antes de salvar. Nada vira input sem a sua confirmação."
       />
       <div className="space-y-6 px-4 pb-32">
         {reuniao.ata && <AtaView reuniao={reuniao} ata={reuniao.ata} />}
-        <section>
-          <h2 className="mb-3 font-serif text-2xl font-medium">Ações sugeridas</h2>
+        <Secao titulo="Ações sugeridas">
           {acoes && acoes.length > 0 ? (
             <RevisaoAcoes acoes={acoes} aoMudar={setAcoes} />
           ) : (
-            <p className="rounded-xl bg-linho p-4 text-sm text-grafite">Nenhuma ação identificada nesta conversa.</p>
+            <p className="destaque-fino text-grafite">Nenhuma ação identificada nesta conversa.</p>
           )}
-        </section>
+        </Secao>
       </div>
       <div className="nao-imprimir fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] z-20 mx-auto max-w-xl px-4">
-        <div className="rounded-2xl bg-papel/95 p-2 shadow-flutuante backdrop-blur">
+        <div className="rounded-lg bg-papel/95 p-2 shadow-flutuante backdrop-blur">
           <button className="botao-primario w-full" disabled={salvando} onClick={confirmar}>
             {textoBotaoSalvar(novos, vinculados)}
           </button>

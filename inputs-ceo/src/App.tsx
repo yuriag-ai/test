@@ -65,7 +65,7 @@ export default function App() {
 function SemGravacao() {
   return (
     <>
-      <Cabecalho titulo="Gravar" voltar="/" />
+      <Cabecalho sobrelinha="Captura" titulo="Gravar" acento="reunião" voltar="/" />
       <Vazio
         icone={<Mic size={28} />}
         titulo="Gravação só na versão instalada"
