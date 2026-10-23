@@ -7,7 +7,6 @@ import { Cabecalho, Folha, SeletorStatus, SeloPrazo, SeloPrioridade, Vazio, useA
 import { useListas } from '../hooks/useDados'
 import { CEO, EM_ARTIFACT, EMPRESA } from '../lib/ambiente'
 import { db, mudarStatus } from '../lib/db'
-import { removerExemplos } from '../lib/exemplos'
 import { exportarCSV } from '../lib/exportar'
 import { ORIGENS, ROTULO_ORIGEM, ROTULO_STATUS, STATUS } from '../lib/rotulos'
 import type { Input, Origem, Status } from '../lib/types'
@@ -69,7 +68,6 @@ export default function Inputs() {
     return contagem
   }, [])
 
-  const temExemplos = useLiveQuery(async () => Boolean((await db.config.get('exemplos'))?.valor), [])
   const [busca, setBusca] = useState('')
   const [filtros, setFiltros] = useState<Filtros>(lerFiltros)
   const [folhaFiltros, setFolhaFiltros] = useState(false)
@@ -157,20 +155,6 @@ export default function Inputs() {
       />
 
       <div className="nao-imprimir space-y-3 px-4">
-        {temExemplos && (
-          <div className="flex items-start gap-3 rounded-2xl bg-couro-claro p-3.5 text-[13px] leading-snug text-couro-escuro">
-            <p className="flex-1">
-              Estes são <strong>exemplos fictícios</strong> para você explorar. Use <strong>Importar</strong> para trazer sua
-              transcrição, resumo ou lista.
-            </p>
-            <button
-              className="shrink-0 rounded-lg border border-couro/30 px-2.5 py-1.5 text-[12px] font-medium"
-              onClick={() => removerExemplos().then(() => avisar('Exemplos removidos'))}
-            >
-              Remover exemplos
-            </button>
-          </div>
-        )}
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-nevoa" />

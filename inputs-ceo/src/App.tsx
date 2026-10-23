@@ -5,7 +5,7 @@ import { Layout } from './components/Layout'
 import { Cabecalho, ProvedorAvisos, Vazio } from './components/ui'
 import { EM_ARTIFACT } from './lib/ambiente'
 import { db } from './lib/db'
-import { semearExemplos } from './lib/exemplos'
+import { prepararDadosIniciais } from './lib/dadosIniciais'
 import Ajustes from './pages/Ajustes'
 import Captura from './pages/Captura'
 import DetalheInput from './pages/DetalheInput'
@@ -22,7 +22,7 @@ export default function App() {
 
   useEffect(() => {
     db.open()
-      .then(() => semearExemplos())
+      .then(() => prepararDadosIniciais())
       .then(() => setBanco('ok'))
       .catch(() => setBanco('erro'))
   }, [])

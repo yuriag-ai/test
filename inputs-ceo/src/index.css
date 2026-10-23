@@ -26,8 +26,31 @@
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Tema: claro por padrão; "escuro" e "auto" (segue o aparelho / o claude.ai) escolhidos em Ajustes. */
+:root[data-tema='escuro'] {
+  --papel: 22 20 18;
+  --superficie: 33 30 27;
+  --linho: 44 40 36;
+  --borda: 60 55 49;
+  --tinta: 242 238 232;
+  --grafite: 200 192 180;
+  --nevoa: 150 142 130;
+  --couro: 214 160 112;
+  --couro-claro: 60 44 31;
+  --couro-escuro: 236 196 156;
+  --pendente: 230 170 80;
+  --pendente-claro: 58 44 21;
+  --andamento: 130 178 226;
+  --andamento-claro: 29 43 58;
+  --concluido: 128 198 152;
+  --concluido-claro: 28 48 36;
+  --bloqueado: 236 134 114;
+  --bloqueado-claro: 62 33 28;
+  color-scheme: dark;
+}
+
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
+  :root[data-tema='auto']:not([data-theme='light']) {
     --papel: 22 20 18;
     --superficie: 33 30 27;
     --linho: 44 40 36;
@@ -50,7 +73,7 @@
   }
 }
 
-:root[data-theme='dark'] {
+:root[data-tema='auto'][data-theme='dark'] {
   --papel: 22 20 18;
   --superficie: 33 30 27;
   --linho: 44 40 36;

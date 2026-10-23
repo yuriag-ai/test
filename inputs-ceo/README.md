@@ -42,7 +42,7 @@ Nada vira tarefa sem revisão. No revisor:
 | **Gravar** | Transcrição ao vivo, gravação do áudio em trechos salvos no aparelho (não se perde se o app fechar), pausa, "Destacar" momentos importantes, anotações digitadas durante a reunião e tela sempre ligada (Wake Lock). |
 | **Reuniões** | Atas executivas (resumo, temas, decisões, pontos de atenção, plano de ação), áudio, transcrição completa, compartilhar texto e imprimir/salvar PDF. |
 | **Pessoas** | Quem está com o quê, quantos itens abertos/atrasados e botão para pedir status por WhatsApp com a lista de pendências pronta. |
-| **Ajustes** | Listas de áreas, marcas e pessoas editáveis; backup/restauração; exportação. |
+| **Ajustes** | Tema (claro, escuro ou automático), listas de áreas, marcas e pessoas editáveis; backup/restauração; exportação. |
 
 ## Rodando localmente
 
@@ -64,9 +64,9 @@ npm run build     # typecheck + build de produção
 
 ## Link de teste (claude.ai)
 
-`npm run build:artifact -- <saida.html>` gera uma versão de página única para publicar como Artifact no claude.ai. Nela:
+`npm run build:artifact -- <saida.html> [--carga <inputs.json>]` gera uma versão de página única para publicar como Artifact no claude.ai. `--carga` embute inputs iniciais (`{id, inputs: [...]}`) só no HTML gerado; mantenha esse arquivo fora do repositório. Nela:
 - a IA roda pelo recurso `sample` (na conta de quem abre o link) e os arquivos saem pelo recurso `downloads`;
-- os rótulos são neutros, sem o nome da empresa, e há exemplos fictícios que podem ser removidos;
+- os rótulos são neutros, sem o nome da empresa;
 - a gravação pelo microfone, os PDFs e a impressão ficam desativados, porque a página roda num quadro restrito;
 - os dados ficam só no navegador de quem testa.
 

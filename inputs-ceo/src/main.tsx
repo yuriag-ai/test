@@ -4,6 +4,9 @@ import { BrowserRouter, MemoryRouter } from 'react-router-dom'
 import App from './App'
 import './index.css'
 import { EM_ARTIFACT } from './lib/ambiente'
+import { aplicarTema, lerTema } from './lib/tema'
+
+aplicarTema(lerTema())
 
 // No link de teste a página roda num quadro do claude.ai, sem endereço próprio: rotas ficam em memória.
 const Roteador = EM_ARTIFACT ? MemoryRouter : BrowserRouter

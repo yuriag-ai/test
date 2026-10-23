@@ -6,6 +6,7 @@ import { EM_ARTIFACT, MSG_SEM_IA } from '../lib/ambiente'
 import { useIA, useListas } from '../hooks/useDados'
 import { apagarTudo, db, salvarLista } from '../lib/db'
 import { exportarBackup, exportarCSV, restaurarBackup } from '../lib/exportar'
+import { aplicarTema, lerTema, type Tema } from '../lib/tema'
 
 export default function Ajustes() {
   const avisar = useAviso()
@@ -13,6 +14,7 @@ export default function Ajustes() {
   const ia = useIA()
   const { areas, marcas, pessoas } = useListas()
   const backup = useRef<HTMLInputElement>(null)
+  const [tema, setTema] = useState<Tema>(lerTema)
   const totais = useLiveQuery(async () => ({ inputs: await db.inputs.count(), reunioes: await db.reunioes.count() }), [])
 
   return (
@@ -29,6 +31,35 @@ export default function Ajustes() {
                 : `${MSG_SEM_IA} Importar listas e acompanhar os inputs funciona sem IA.`}
             </div>
           </div>
+        </section>
+
+        <section>
+          <h2 className="rotulo">Aparência</h2>
+          <div className="grid grid-cols-3 gap-1.5">
+            {(
+              [
+                ['claro', 'Claro'],
+                ['escuro', 'Escuro'],
+                ['auto', 'Automático'],
+              ] as [Tema, string][]
+            ).map(([valor, rotulo]) => (
+              <button
+                key={valor}
+                onClick={() => {
+                  aplicarTema(valor)
+                  setTema(valor)
+                }}
+                className={
+                  tema === valor
+                    ? 'rounded-xl border border-tinta bg-tinta py-2.5 text-sm font-medium text-papel'
+                    : 'rounded-xl border border-borda bg-superficie py-2.5 text-sm font-medium text-grafite'
+                }
+              >
+                {rotulo}
+              </button>
+            ))}
+          </div>
+          {tema === 'auto' && <p className="mt-1.5 text-[12px] text-nevoa">Segue o tema do aparelho ou do claude.ai.</p>}
         </section>
 
         <EditorLista titulo="Áreas" itens={areas} aoSalvar={(v) => salvarLista('areas', v)} />

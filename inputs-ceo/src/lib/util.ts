@@ -72,8 +72,3 @@ export function unicos(lista: string[]): string[] {
   }
   return saida
 }
-
-export function somarDiasISO(dias: number, base = hojeISO()): string {
-  const [a, m, d] = base.split('-').map(Number)
-  return hojeISO(new Date(a, m - 1, d + dias))
-}
