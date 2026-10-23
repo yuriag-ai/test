@@ -1,13 +1,15 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { CheckCircle2, CircleAlert, Download, Plus, Trash2, Upload, X } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { Cabecalho, CampoLista, useAviso } from '../components/ui'
+import { Cabecalho, CampoLista, useAviso, useConfirmar } from '../components/ui'
+import { EM_ARTIFACT, MSG_SEM_IA } from '../lib/ambiente'
 import { useIA, useListas } from '../hooks/useDados'
 import { apagarTudo, db, salvarLista } from '../lib/db'
 import { exportarBackup, exportarCSV, restaurarBackup } from '../lib/exportar'
 
 export default function Ajustes() {
   const avisar = useAviso()
+  const confirmar = useConfirmar()
   const ia = useIA()
   const { areas, marcas, pessoas } = useListas()
   const backup = useRef<HTMLInputElement>(null)
@@ -24,7 +26,7 @@ export default function Ajustes() {
             <div className="text-grafite">
               {ia
                 ? 'Atas executivas, planos de ação e refinamento de listas estão disponíveis.'
-                : 'Defina ANTHROPIC_API_KEY no servidor para gerar atas e planos de ação. Captura, importação e acompanhamento funcionam sem IA.'}
+                : `${MSG_SEM_IA} Importar listas e acompanhar os inputs funciona sem IA.`}
             </div>
           </div>
         </section>
@@ -60,10 +62,11 @@ export default function Ajustes() {
         <section className="space-y-2">
           <h2 className="rotulo">Dados</h2>
           <p className="text-[13px] leading-relaxed text-grafite">
-            Os dados ficam guardados neste aparelho ({totais?.inputs ?? 0} inputs, {totais?.reunioes ?? 0} reuniões). Faça backups
-            periódicos — a sincronização entre aparelhos e usuários é a próxima etapa.
+            {EM_ARTIFACT ? 'Nesta versão de teste, os dados ficam só neste navegador' : 'Os dados ficam guardados neste aparelho'} (
+            {totais?.inputs ?? 0} inputs, {totais?.reunioes ?? 0} reuniões). Faça backups periódicos; a sincronização entre aparelhos e
+            usuários é a próxima etapa.
           </p>
-          <button className="botao-secundario w-full justify-start" onClick={() => void exportarBackup()}>
+          <button className="botao-secundario w-full justify-start" onClick={() => exportarBackup().catch((e: Error) => avisar(e.message))}>
             <Download size={18} /> Exportar backup completo
           </button>
           <button className="botao-secundario w-full justify-start" onClick={() => backup.current?.click()}>
@@ -86,13 +89,22 @@ export default function Ajustes() {
               }
             }}
           />
-          <button className="botao-secundario w-full justify-start" onClick={async () => exportarCSV(await db.inputs.orderBy('numero').toArray())}>
+          <button
+            className="botao-secundario w-full justify-start"
+            onClick={async () => exportarCSV(await db.inputs.orderBy('numero').toArray()).catch((e: Error) => avisar(e.message))}
+          >
             <Download size={18} /> Exportar inputs para Excel
           </button>
           <button
             className="botao w-full justify-start border border-bloqueado/30 text-bloqueado hover:bg-bloqueado-claro"
             onClick={async () => {
-              if (!confirm('Apagar todos os inputs, reuniões, áudios e anexos deste aparelho? Esta ação não pode ser desfeita.')) return
+              const ok = await confirmar({
+                titulo: 'Apagar todos os dados?',
+                texto: 'Inputs, reuniões, áudios e anexos deste aparelho serão apagados. Não dá para desfazer.',
+                botao: 'Apagar tudo',
+                perigo: true,
+              })
+              if (!ok) return
               await apagarTudo()
               avisar('Dados apagados')
             }}
@@ -117,7 +129,7 @@ function EditorLista({ titulo, itens, aoSalvar }: { titulo: string; itens: strin
       <h2 className="rotulo">{titulo}</h2>
       <div className="flex flex-wrap gap-1.5">
         {itens.map((item) => (
-          <span key={item} className="chip border border-borda bg-white py-1.5 pl-3 text-[13px]">
+          <span key={item} className="chip border border-borda bg-superficie py-1.5 pl-3 text-[13px]">
             {item}
             <button aria-label={`Remover ${item}`} className="text-nevoa hover:text-bloqueado" onClick={() => void aoSalvar(itens.filter((i) => i !== item))}>
               <X size={14} />

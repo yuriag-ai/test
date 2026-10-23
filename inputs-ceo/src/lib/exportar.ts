@@ -1,9 +1,28 @@
+import { CEO, EM_ARTIFACT, usarRecurso } from './ambiente'
 import { db } from './db'
 import { ROTULO_ORIGEM, ROTULO_PRIORIDADE, ROTULO_STATUS } from './rotulos'
 import type { AtaExecutiva, Input, Reuniao } from './types'
 import { formatarData, hojeISO } from './util'
 
-function baixar(blob: Blob, nome: string) {
+interface Downloads {
+  save(pedido: { filename: string; data: Blob }): Promise<unknown>
+}
+
+/** Entrega um arquivo ao usuário: no link de teste pelo recurso `downloads`, senão por um link de download. */
+export async function salvarArquivo(blob: Blob, nome: string): Promise<void> {
+  if (EM_ARTIFACT) {
+    const downloads = await usarRecurso<Downloads>('downloads')
+    if (!downloads) throw new Error('Baixar arquivos não está disponível nesta visualização.')
+    try {
+      await downloads.save({ filename: nome, data: blob })
+    } catch (erro) {
+      const codigo = (erro as { code?: string }).code
+      if (codigo === 'declined') return
+      if (codigo === 'rejected_extension') throw new Error('Este tipo de arquivo não pode ser baixado aqui.')
+      throw new Error('Não foi possível salvar o arquivo. Tente de novo.')
+    }
+    return
+  }
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
@@ -20,7 +39,7 @@ function celula(valor: string | number): string {
 }
 
 /** CSV com ";" e BOM — abre direto no Excel em português. */
-export function exportarCSV(inputs: Input[]) {
+export async function exportarCSV(inputs: Input[]) {
   const cabecalho = [
     'Nº', 'Título', 'Descrição', 'Contexto', 'Origem', 'Local', 'Data do input', 'Área', 'Marca',
     'Responsáveis', 'Prazo', 'Status', 'Prioridade', 'Observações', 'Última atualização',
@@ -32,7 +51,7 @@ export function exportarCSV(inputs: Input[]) {
     i.atualizadoEm.slice(0, 10),
   ])
   const csv = [cabecalho, ...linhas].map((l) => l.map(celula).join(';')).join('\r\n')
-  baixar(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }), `inputs-ceo-${hojeISO()}.csv`)
+  await salvarArquivo(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }), `inputs-ceo-${hojeISO()}.csv`)
 }
 
 async function blobParaDataURL(blob: Blob): Promise<string> {
@@ -57,7 +76,7 @@ export async function exportarBackup() {
     anexos.map(async ({ blob, ...resto }) => ({ ...resto, dados: await blobParaDataURL(blob) })),
   )
   const conteudo = JSON.stringify({ versao: 1, geradoEm: new Date().toISOString(), inputs, reunioes, pessoas, config, anexos: anexosSerializados })
-  baixar(new Blob([conteudo], { type: 'application/json' }), `backup-inputs-ceo-${hojeISO()}.json`)
+  await salvarArquivo(new Blob([conteudo], { type: 'application/json' }), `backup-inputs-ceo-${hojeISO()}.json`)
 }
 
 export async function restaurarBackup(arquivo: File) {
@@ -85,7 +104,7 @@ export function textoPendencias(nome: string, inputs: Input[]): string {
     const prazo = i.prazo ? ` (prazo ${formatarData(i.prazo)})` : ''
     return `• #${i.numero} ${i.titulo}${prazo} — ${ROTULO_STATUS[i.status]}`
   })
-  return `Olá, ${nome.split(' ')[0]}! Seguem os pontos do Alexandre com você:\n\n${linhas.join('\n')}\n\nConsegue me atualizar o status?`
+  return `Olá, ${nome.split(' ')[0]}! Seguem os pontos ${CEO.de} com você:\n\n${linhas.join('\n')}\n\nConsegue me atualizar o status?`
 }
 
 export function textoAta(reuniao: Reuniao, ata: AtaExecutiva, acoes: Input[]): string {
@@ -107,17 +126,4 @@ export function textoAta(reuniao: Reuniao, ata: AtaExecutiva, acoes: Input[]): s
     }
   }
   return partes.join('\n')
-}
-
-export async function compartilharTexto(titulo: string, texto: string): Promise<'compartilhado' | 'copiado'> {
-  if (navigator.share) {
-    try {
-      await navigator.share({ title: titulo, text: texto })
-      return 'compartilhado'
-    } catch (erro) {
-      if ((erro as DOMException).name === 'AbortError') return 'compartilhado'
-    }
-  }
-  await navigator.clipboard.writeText(texto)
-  return 'copiado'
 }

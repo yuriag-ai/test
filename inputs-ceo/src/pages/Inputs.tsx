@@ -5,7 +5,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Cabecalho, Folha, SeletorStatus, SeloPrazo, SeloPrioridade, Vazio, useAviso } from '../components/ui'
 import { useListas } from '../hooks/useDados'
+import { CEO, EM_ARTIFACT, EMPRESA } from '../lib/ambiente'
 import { db, mudarStatus } from '../lib/db'
+import { removerExemplos } from '../lib/exemplos'
 import { exportarCSV } from '../lib/exportar'
 import { ORIGENS, ROTULO_ORIGEM, ROTULO_STATUS, STATUS } from '../lib/rotulos'
 import type { Input, Origem, Status } from '../lib/types'
@@ -67,6 +69,7 @@ export default function Inputs() {
     return contagem
   }, [])
 
+  const temExemplos = useLiveQuery(async () => Boolean((await db.config.get('exemplos'))?.valor), [])
   const [busca, setBusca] = useState('')
   const [filtros, setFiltros] = useState<Filtros>(lerFiltros)
   const [folhaFiltros, setFolhaFiltros] = useState(false)
@@ -121,7 +124,7 @@ export default function Inputs() {
         <Vazio
           icone={<ClipboardList size={28} />}
           titulo="Nenhum input ainda"
-          texto="Envie a transcrição, o resumo ou a lista de inputs do Alexandre — ou registre um ponto manualmente."
+          texto={`Envie a transcrição, o resumo ou a lista de inputs ${CEO.de}, ou registre um ponto manualmente.`}
           acao={
             <div className="flex flex-col gap-2.5">
               <Link to="/importar" className="botao-primario">
@@ -130,9 +133,11 @@ export default function Inputs() {
               <Link to="/inputs/novo" className="botao-secundario">
                 <Plus size={18} /> Novo input manual
               </Link>
-              <Link to="/captura" className="botao-fantasma">
-                <Mic size={18} /> Gravar no celular
-              </Link>
+              {!EM_ARTIFACT && (
+                <Link to="/captura" className="botao-fantasma">
+                  <Mic size={18} /> Gravar no celular
+                </Link>
+              )}
             </div>
           }
         />
@@ -152,6 +157,20 @@ export default function Inputs() {
       />
 
       <div className="nao-imprimir space-y-3 px-4">
+        {temExemplos && (
+          <div className="flex items-start gap-3 rounded-2xl bg-couro-claro p-3.5 text-[13px] leading-snug text-couro-escuro">
+            <p className="flex-1">
+              Estes são <strong>exemplos fictícios</strong> para você explorar. Use <strong>Importar</strong> para trazer sua
+              transcrição, resumo ou lista.
+            </p>
+            <button
+              className="shrink-0 rounded-lg border border-couro/30 px-2.5 py-1.5 text-[12px] font-medium"
+              onClick={() => removerExemplos().then(() => avisar('Exemplos removidos'))}
+            >
+              Remover exemplos
+            </button>
+          </div>
+        )}
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-nevoa" />
@@ -166,11 +185,11 @@ export default function Inputs() {
           <button
             aria-label="Filtros"
             onClick={() => setFolhaFiltros(true)}
-            className={clsx('relative rounded-xl border px-3.5', filtrosAtivos ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-white')}
+            className={clsx('relative rounded-xl border px-3.5', filtrosAtivos ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-superficie')}
           >
             <SlidersHorizontal size={18} />
             {filtrosAtivos > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-couro text-[10px] font-semibold text-white">
+              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-couro text-[10px] font-semibold text-papel">
                 {filtrosAtivos}
               </span>
             )}
@@ -184,7 +203,7 @@ export default function Inputs() {
               onClick={() => setFiltros((f) => ({ ...f, rapido: r.valor }))}
               className={clsx(
                 'shrink-0 rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition',
-                filtros.rapido === r.valor ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-white text-grafite',
+                filtros.rapido === r.valor ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-superficie text-grafite',
                 r.valor === 'atrasados' && contagens.atrasados > 0 && filtros.rapido !== r.valor && 'text-bloqueado',
               )}
             >
@@ -227,7 +246,7 @@ export default function Inputs() {
       <button
         aria-label="Novo input"
         onClick={() => navigate('/inputs/novo')}
-        className="nao-imprimir fixed bottom-[calc(env(safe-area-inset-bottom)+5.75rem)] right-[max(1rem,calc(50%-17rem))] z-20 flex h-12 w-12 items-center justify-center rounded-full border border-borda bg-white text-tinta shadow-flutuante"
+        className="nao-imprimir fixed bottom-[calc(env(safe-area-inset-bottom)+5.75rem)] right-[max(1rem,calc(50%-17rem))] z-20 flex h-12 w-12 items-center justify-center rounded-full border border-borda bg-superficie text-tinta shadow-flutuante"
       >
         <Plus size={22} />
       </button>
@@ -240,7 +259,7 @@ export default function Inputs() {
           <button
             className="botao-secundario w-full justify-start"
             onClick={() => {
-              exportarCSV(filtrados.length ? filtrados : lista)
+              exportarCSV(filtrados.length ? filtrados : lista).catch((e: Error) => avisar(e.message))
               setMenu(false)
             }}
           >
@@ -318,7 +337,9 @@ export default function Inputs() {
 function TituloMarca() {
   return (
     <div>
-      <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-couro">Arezzo&amp;CO · Escritório do CEO</div>
+      <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-couro">
+        {EMPRESA ? `${EMPRESA} · ` : ''}Escritório do CEO
+      </div>
       <h1 className="titulo-pagina mt-1">Inputs</h1>
     </div>
   )
@@ -350,7 +371,7 @@ function GrupoOpcoes({
             onClick={() => aoTocar(valor)}
             className={clsx(
               'rounded-full border px-3 py-1.5 text-[13px]',
-              selecionados.includes(valor) ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-white text-grafite',
+              selecionados.includes(valor) ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-superficie text-grafite',
             )}
           >
             {texto}

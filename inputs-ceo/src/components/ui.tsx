@@ -2,6 +2,7 @@ import clsx from 'clsx'
 import { ChevronLeft, X } from 'lucide-react'
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode, type TextareaHTMLAttributes } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { EM_ARTIFACT } from '../lib/ambiente'
 import { ROTULO_PRIORIDADE, ROTULO_STATUS, STATUS } from '../lib/rotulos'
 import type { Prioridade, Status } from '../lib/types'
 import { diasAte, formatarData } from '../lib/util'
@@ -21,7 +22,7 @@ export function Cabecalho({
 }) {
   const navigate = useNavigate()
   return (
-    <header className="nao-imprimir sticky top-0 z-20 bg-papel/90 px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] backdrop-blur">
+    <header className="nao-imprimir sticky top-[env(safe-area-inset-top,0px)] z-20 bg-papel/90 px-4 pb-3 pt-3 backdrop-blur">
       <div className="flex min-h-10 items-center gap-2">
         {voltar && (
           <button
@@ -234,11 +235,11 @@ export function Folha({
   }, [aberta, aoFechar])
   if (!aberta) return null
   return (
-    <div className="nao-imprimir fixed inset-0 z-50 flex items-end justify-center bg-tinta/30 backdrop-blur-[2px]" onClick={aoFechar}>
+    <div className="nao-imprimir fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-[2px]" onClick={aoFechar}>
       <div
         role="dialog"
         aria-label={titulo}
-        className="max-h-[88vh] w-full max-w-xl overflow-y-auto rounded-t-3xl bg-papel px-5 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] pt-3 shadow-flutuante"
+        className="max-h-[88vh] w-full max-w-xl overflow-y-auto rounded-t-3xl bg-papel px-5 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] pt-3 shadow-flutuante"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-borda" />
@@ -267,30 +268,129 @@ export function Vazio({ icone, titulo, texto, acao }: { icone: ReactNode; titulo
   )
 }
 
-// ---------- Avisos rápidos (toast) ----------
+// ---------- Avisos rápidos, confirmações e compartilhamento ----------
+
+interface PedidoConfirmacao {
+  titulo: string
+  texto?: string
+  botao: string
+  perigo?: boolean
+}
 
 const ContextoAviso = createContext<(msg: string) => void>(() => undefined)
+const ContextoConfirmar = createContext<(p: PedidoConfirmacao) => Promise<boolean>>(async () => false)
+const ContextoCompartilhar = createContext<(titulo: string, texto: string) => Promise<void>>(async () => undefined)
 
 export function ProvedorAvisos({ children }: { children: ReactNode }) {
   const [msg, setMsg] = useState<string | null>(null)
+  const [confirmacao, setConfirmacao] = useState<(PedidoConfirmacao & { responder: (ok: boolean) => void }) | null>(null)
+  const [paraCopiar, setParaCopiar] = useState<{ titulo: string; texto: string } | null>(null)
   const avisar = useCallback((m: string) => setMsg(m), [])
+
+  const confirmar = useCallback(
+    (p: PedidoConfirmacao) =>
+      new Promise<boolean>((resolver) => {
+        setConfirmacao({ ...p, responder: resolver })
+      }),
+    [],
+  )
+  const responder = (ok: boolean) => {
+    confirmacao?.responder(ok)
+    setConfirmacao(null)
+  }
+
+  const compartilhar = useCallback(
+    async (titulo: string, texto: string) => {
+      if (!EM_ARTIFACT && navigator.share) {
+        try {
+          await navigator.share({ title: titulo, text: texto })
+          return
+        } catch (erro) {
+          if ((erro as DOMException).name === 'AbortError') return
+        }
+      }
+      try {
+        await navigator.clipboard.writeText(texto)
+        avisar('Texto copiado. É só colar no WhatsApp ou e-mail.')
+      } catch {
+        setParaCopiar({ titulo, texto })
+      }
+    },
+    [avisar],
+  )
+
   useEffect(() => {
     if (!msg) return
     const t = setTimeout(() => setMsg(null), 2800)
     return () => clearTimeout(t)
   }, [msg])
+
   return (
     <ContextoAviso.Provider value={avisar}>
-      {children}
-      {msg && (
-        <div className="nao-imprimir pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+6.5rem)] z-[60] flex justify-center px-4">
-          <div className="rounded-full bg-tinta px-4 py-2.5 text-sm text-papel shadow-flutuante">{msg}</div>
-        </div>
-      )}
+      <ContextoConfirmar.Provider value={confirmar}>
+        <ContextoCompartilhar.Provider value={compartilhar}>
+          {children}
+          {msg && (
+            <div className="nao-imprimir pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom,0px)+6.5rem)] z-[60] flex justify-center px-4">
+              <div className="rounded-full bg-tinta px-4 py-2.5 text-sm text-papel shadow-flutuante">{msg}</div>
+            </div>
+          )}
+          <Folha aberta={Boolean(confirmacao)} aoFechar={() => responder(false)} titulo={confirmacao?.titulo ?? ''}>
+            {confirmacao?.texto && <p className="-mt-2 text-sm leading-relaxed text-grafite">{confirmacao.texto}</p>}
+            <div className="mt-5 flex gap-2">
+              <button className="botao-secundario flex-1" onClick={() => responder(false)}>
+                Cancelar
+              </button>
+              <button
+                autoFocus
+                className={clsx('botao flex-1', confirmacao?.perigo ? 'bg-bloqueado text-papel' : 'bg-tinta text-papel')}
+                onClick={() => responder(true)}
+              >
+                {confirmacao?.botao}
+              </button>
+            </div>
+          </Folha>
+          <Folha aberta={Boolean(paraCopiar)} aoFechar={() => setParaCopiar(null)} titulo="Copiar texto">
+            <p className="-mt-2 mb-3 text-[13px] text-grafite">Selecione o texto abaixo e copie para enviar.</p>
+            <textarea
+              id="texto-para-copiar"
+              readOnly
+              rows={10}
+              value={paraCopiar?.texto ?? ''}
+              onFocus={(e) => e.currentTarget.select()}
+              className="campo text-[13px] leading-relaxed"
+            />
+            <button
+              className="botao-primario mt-3 w-full"
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(paraCopiar?.texto ?? '')
+                  avisar('Texto copiado')
+                  setParaCopiar(null)
+                } catch {
+                  ;(document.getElementById('texto-para-copiar') as HTMLTextAreaElement | null)?.select()
+                }
+              }}
+            >
+              Copiar
+            </button>
+          </Folha>
+        </ContextoCompartilhar.Provider>
+      </ContextoConfirmar.Provider>
     </ContextoAviso.Provider>
   )
 }
 
 export function useAviso() {
   return useContext(ContextoAviso)
+}
+
+/** Pede confirmação dentro do app (o claude.ai e alguns celulares bloqueiam o confirm() do navegador). */
+export function useConfirmar() {
+  return useContext(ContextoConfirmar)
+}
+
+/** Compartilha (celular) ou copia um texto; se nada disso for possível, mostra o texto para copiar. */
+export function useCompartilhar() {
+  return useContext(ContextoCompartilhar)
 }

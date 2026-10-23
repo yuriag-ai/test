@@ -1,20 +1,24 @@
 /** @type {import('tailwindcss').Config} */
+const token = (nome) => `rgb(var(--${nome}) / <alpha-value>)`
+
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
+      // Cores definidas como variáveis em src/index.css (tema claro e escuro)
       colors: {
-        papel: '#FAF8F5',
-        linho: '#F1EDE6',
-        borda: '#E4DED4',
-        tinta: '#1C1A17',
-        grafite: '#57524A',
-        nevoa: '#8E877C',
-        couro: { DEFAULT: '#8A5A33', claro: '#F4E9DE', escuro: '#6E4626' },
-        pendente: { DEFAULT: '#A86B12', claro: '#FBF0DC' },
-        andamento: { DEFAULT: '#2F5D8A', claro: '#E3ECF5' },
-        concluido: { DEFAULT: '#3D7350', claro: '#E2F0E6' },
-        bloqueado: { DEFAULT: '#A23B2A', claro: '#F8E3DF' },
+        papel: token('papel'),
+        superficie: token('superficie'),
+        linho: token('linho'),
+        borda: token('borda'),
+        tinta: token('tinta'),
+        grafite: token('grafite'),
+        nevoa: token('nevoa'),
+        couro: { DEFAULT: token('couro'), claro: token('couro-claro'), escuro: token('couro-escuro') },
+        pendente: { DEFAULT: token('pendente'), claro: token('pendente-claro') },
+        andamento: { DEFAULT: token('andamento'), claro: token('andamento-claro') },
+        concluido: { DEFAULT: token('concluido'), claro: token('concluido-claro') },
+        bloqueado: { DEFAULT: token('bloqueado'), claro: token('bloqueado-claro') },
       },
       fontFamily: {
         serif: ['"Bodoni Moda"', 'Didot', 'Georgia', 'serif'],

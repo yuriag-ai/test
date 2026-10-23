@@ -2,6 +2,76 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Couro e linho: neutros quentes de ateliê. Escuro: o mesmo couro sobre carvão. */
+:root {
+  --papel: 250 248 245;
+  --superficie: 255 255 255;
+  --linho: 241 237 230;
+  --borda: 228 222 212;
+  --tinta: 28 26 23;
+  --grafite: 87 82 74;
+  --nevoa: 134 127 116;
+  --couro: 138 90 51;
+  --couro-claro: 244 233 222;
+  --couro-escuro: 110 70 38;
+  --pendente: 158 99 12;
+  --pendente-claro: 251 240 220;
+  --andamento: 47 93 138;
+  --andamento-claro: 227 236 245;
+  --concluido: 61 115 80;
+  --concluido-claro: 226 240 230;
+  --bloqueado: 162 59 42;
+  --bloqueado-claro: 248 227 223;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --papel: 22 20 18;
+    --superficie: 33 30 27;
+    --linho: 44 40 36;
+    --borda: 60 55 49;
+    --tinta: 242 238 232;
+    --grafite: 200 192 180;
+    --nevoa: 150 142 130;
+    --couro: 214 160 112;
+    --couro-claro: 60 44 31;
+    --couro-escuro: 236 196 156;
+    --pendente: 230 170 80;
+    --pendente-claro: 58 44 21;
+    --andamento: 130 178 226;
+    --andamento-claro: 29 43 58;
+    --concluido: 128 198 152;
+    --concluido-claro: 28 48 36;
+    --bloqueado: 236 134 114;
+    --bloqueado-claro: 62 33 28;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --papel: 22 20 18;
+  --superficie: 33 30 27;
+  --linho: 44 40 36;
+  --borda: 60 55 49;
+  --tinta: 242 238 232;
+  --grafite: 200 192 180;
+  --nevoa: 150 142 130;
+  --couro: 214 160 112;
+  --couro-claro: 60 44 31;
+  --couro-escuro: 236 196 156;
+  --pendente: 230 170 80;
+  --pendente-claro: 58 44 21;
+  --andamento: 130 178 226;
+  --andamento-claro: 29 43 58;
+  --concluido: 128 198 152;
+  --concluido-claro: 28 48 36;
+  --bloqueado: 236 134 114;
+  --bloqueado-claro: 62 33 28;
+  color-scheme: dark;
+}
+
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
@@ -10,6 +80,27 @@
   body {
     @apply bg-papel text-tinta font-sans antialiased;
     overscroll-behavior-y: none;
+  }
+  /* Faixa sob a barra de status do celular, atrás do cabeçalho fixo */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0 0 auto;
+    height: env(safe-area-inset-top, 0px);
+    z-index: 10;
+    background: rgb(var(--papel));
+  }
+  :focus-visible {
+    outline: 2px solid rgb(var(--couro));
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
   }
   input,
   textarea,
@@ -20,7 +111,7 @@
 
 @layer components {
   .campo {
-    @apply w-full rounded-xl border border-borda bg-white px-3.5 py-3 text-[15px] text-tinta placeholder:text-nevoa
+    @apply w-full rounded-xl border border-borda bg-superficie px-3.5 py-3 text-[15px] text-tinta placeholder:text-nevoa
       focus:border-couro focus:outline-none focus:ring-2 focus:ring-couro/15 transition;
   }
   .rotulo {
@@ -31,16 +122,16 @@
       active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none;
   }
   .botao-primario {
-    @apply botao bg-tinta text-papel hover:bg-black;
+    @apply botao bg-tinta text-papel hover:opacity-90;
   }
   .botao-secundario {
-    @apply botao border border-borda bg-white text-tinta hover:bg-linho;
+    @apply botao border border-borda bg-superficie text-tinta hover:bg-linho;
   }
   .botao-fantasma {
     @apply botao px-3 py-2 text-grafite hover:bg-linho;
   }
   .cartao {
-    @apply rounded-2xl border border-borda/70 bg-white shadow-cartao;
+    @apply rounded-2xl border border-borda/70 bg-superficie shadow-cartao;
   }
   .chip {
     @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium;

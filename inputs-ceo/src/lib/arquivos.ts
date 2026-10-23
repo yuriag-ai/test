@@ -1,9 +1,10 @@
 import { strFromU8, unzipSync } from 'fflate'
+import { EM_ARTIFACT } from './ambiente'
 import { limparLegenda } from './material'
 import type { ArquivoIA, TipoMaterial } from './types'
 
 /** Formatos aceitos no seletor de arquivos. */
-export const ACEITOS = '.txt,.md,.markdown,.csv,.srt,.vtt,.docx,.pdf,image/*'
+export const ACEITOS = EM_ARTIFACT ? '.txt,.md,.markdown,.csv,.srt,.vtt,.docx,image/*' : '.txt,.md,.markdown,.csv,.srt,.vtt,.docx,.pdf,image/*'
 
 /** Limite do corpo da requisição nas funções da Vercel é ~4,5 MB; deixamos folga para o JSON. */
 export const LIMITE_ANEXOS_BYTES = 3_500_000
@@ -29,6 +30,7 @@ export async function lerArquivo(arquivo: File): Promise<ArquivoLido> {
     }
     if (ext === 'docx') return { nome, texto: extrairTextoDocx(new Uint8Array(await arquivo.arrayBuffer())) }
     if (ext === 'pdf' || arquivo.type === 'application/pdf') {
+      if (EM_ARTIFACT) return { nome, erro: 'No link de teste, PDFs não são lidos. Envie o texto (TXT ou DOCX) ou fotos das páginas.' }
       if (arquivo.size > LIMITE_ANEXOS_BYTES * 0.75) return { nome, erro: 'PDF grande demais (máx. ~2,5 MB). Exporte só as páginas necessárias.' }
       return { nome, anexo: { nome, tipo: 'application/pdf', dados: await paraBase64(arquivo) } }
     }

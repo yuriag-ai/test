@@ -2,6 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { CalendarDays, ChevronRight, FileUp, Mic } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Cabecalho, Vazio } from '../components/ui'
+import { EM_ARTIFACT } from '../lib/ambiente'
 import { db } from '../lib/db'
 import { ROTULO_ORIGEM } from '../lib/rotulos'
 import type { Reuniao } from '../lib/types'
@@ -34,9 +35,11 @@ export default function Reunioes() {
         titulo="Reuniões"
         subtitulo="Atas executivas, transcrições e planos de ação."
         acoes={
-          <Link to="/captura" aria-label="Gravar no celular" className="rounded-full p-2 text-grafite hover:bg-linho">
-            <Mic size={20} />
-          </Link>
+          !EM_ARTIFACT && (
+            <Link to="/captura" aria-label="Gravar no celular" className="rounded-full p-2 text-grafite hover:bg-linho">
+              <Mic size={20} />
+            </Link>
+          )
         }
       />
       {reunioes && reunioes.length === 0 ? (
@@ -49,9 +52,11 @@ export default function Reunioes() {
               <Link to="/importar" className="botao-primario">
                 <FileUp size={18} /> Importar transcrição ou resumo
               </Link>
-              <Link to="/captura" className="botao-secundario">
-                <Mic size={18} /> Gravar no celular
-              </Link>
+              {!EM_ARTIFACT && (
+                <Link to="/captura" className="botao-secundario">
+                  <Mic size={18} /> Gravar no celular
+                </Link>
+              )}
             </div>
           }
         />

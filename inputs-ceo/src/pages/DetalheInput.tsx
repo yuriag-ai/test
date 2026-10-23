@@ -3,10 +3,11 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { Camera, ExternalLink, FileText, MessageSquarePlus, Paperclip, Quote, Share2, Trash2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { AreaTexto, Cabecalho, CampoLista, CampoPessoas, SeletorStatus, useAviso } from '../components/ui'
+import { AreaTexto, Cabecalho, CampoLista, CampoPessoas, SeletorStatus, useAviso, useCompartilhar, useConfirmar } from '../components/ui'
+import { EM_ARTIFACT } from '../lib/ambiente'
 import { useListas } from '../hooks/useDados'
 import { adicionarAnexos, adicionarNota, atualizarInput, db, excluirInput } from '../lib/db'
-import { compartilharTexto } from '../lib/exportar'
+import { salvarArquivo } from '../lib/exportar'
 import { ORIGENS, PRIORIDADES, ROTULO_STATUS } from '../lib/rotulos'
 import type { Anexo, Input, Origem, Prioridade } from '../lib/types'
 import { formatarData, formatarDataHora, formatarTamanho } from '../lib/util'
@@ -15,6 +16,8 @@ export default function DetalheInput() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
   const avisar = useAviso()
+  const confirmar = useConfirmar()
+  const compartilhar = useCompartilhar()
   const input = useLiveQuery(() => db.inputs.get(id).then((i) => i ?? null), [id])
   const reuniao = useLiveQuery(() => (input?.reuniaoId ? db.reunioes.get(input.reuniaoId) : undefined), [input?.reuniaoId])
   const { areas, marcas, nomes } = useListas()
@@ -31,7 +34,7 @@ export default function DetalheInput() {
 
   const salvar = (mudancas: Partial<Input>) => void atualizarInput(id, mudancas)
 
-  const compartilhar = async () => {
+  const compartilharInput = () => {
     const texto = [
       `#${input.numero} ${input.titulo}`,
       input.descricao !== input.titulo ? input.descricao : '',
@@ -41,11 +44,17 @@ export default function DetalheInput() {
     ]
       .filter(Boolean)
       .join('\n')
-    if ((await compartilharTexto(input.titulo, texto)) === 'copiado') avisar('Texto copiado')
+    void compartilhar(input.titulo, texto)
   }
 
   const excluir = async () => {
-    if (!confirm(`Excluir o input #${input.numero}? Os anexos também serão apagados.`)) return
+    const ok = await confirmar({
+      titulo: `Excluir o input #${input.numero}?`,
+      texto: 'O histórico e os anexos também serão apagados.',
+      botao: 'Excluir',
+      perigo: true,
+    })
+    if (!ok) return
     await excluirInput(id)
     avisar('Input excluído')
     navigate('/', { replace: true })
@@ -58,7 +67,7 @@ export default function DetalheInput() {
         titulo={<span className="text-sm font-semibold text-nevoa">Input #{input.numero}</span>}
         acoes={
           <>
-            <button aria-label="Compartilhar" className="rounded-full p-2 hover:bg-linho" onClick={compartilhar}>
+            <button aria-label="Compartilhar" className="rounded-full p-2 hover:bg-linho" onClick={compartilharInput}>
               <Share2 size={19} />
             </button>
             <button aria-label="Excluir" className="rounded-full p-2 text-bloqueado hover:bg-bloqueado-claro" onClick={excluir}>
@@ -79,14 +88,14 @@ export default function DetalheInput() {
 
         <div className="flex flex-wrap items-center gap-2">
           <SeletorStatus grande status={input.status} aoMudar={(status) => salvar({ status })} />
-          <div className="flex rounded-full border border-borda bg-white p-0.5">
+          <div className="flex rounded-full border border-borda bg-superficie p-0.5">
             {PRIORIDADES.map((p) => (
               <button
                 key={p.valor}
                 onClick={() => salvar({ prioridade: p.valor as Prioridade })}
                 className={clsx(
                   'rounded-full px-3 py-1.5 text-xs font-medium',
-                  input.prioridade === p.valor ? (p.valor === 'alta' ? 'bg-bloqueado text-white' : 'bg-tinta text-papel') : 'text-grafite',
+                  input.prioridade === p.valor ? (p.valor === 'alta' ? 'bg-bloqueado text-papel' : 'bg-tinta text-papel') : 'text-grafite',
                 )}
               >
                 {p.rotulo}
@@ -295,6 +304,8 @@ function Anexos({ inputId }: { inputId: string }) {
 }
 
 function ItemAnexo({ anexo }: { anexo: Anexo }) {
+  const confirmar = useConfirmar()
+  const avisar = useAviso()
   const [url, setUrl] = useState('')
   useEffect(() => {
     const u = URL.createObjectURL(anexo.blob)
@@ -304,7 +315,20 @@ function ItemAnexo({ anexo }: { anexo: Anexo }) {
   const imagem = anexo.tipo.startsWith('image/')
   return (
     <li className="cartao relative overflow-hidden">
-      <a href={url} target="_blank" rel="noreferrer" download={imagem ? undefined : anexo.nome} className="block">
+      <a
+        href={url}
+        target="_blank"
+        rel="noreferrer"
+        download={imagem ? undefined : anexo.nome}
+        className="block"
+        onClick={(e) => {
+          // No link de teste, arquivos só saem pelo recurso de downloads do claude.ai
+          if (EM_ARTIFACT && !imagem) {
+            e.preventDefault()
+            salvarArquivo(anexo.blob, anexo.nome).catch((erro: Error) => avisar(erro.message))
+          }
+        }}
+      >
         {imagem ? (
           <img src={url} alt={anexo.nome} className="h-28 w-full object-cover" />
         ) : (
@@ -319,8 +343,10 @@ function ItemAnexo({ anexo }: { anexo: Anexo }) {
       </a>
       <button
         aria-label={`Remover ${anexo.nome}`}
-        onClick={() => confirm(`Remover "${anexo.nome}"?`) && void db.anexos.delete(anexo.id)}
-        className="absolute right-1.5 top-1.5 rounded-full bg-white/90 p-1.5 text-bloqueado shadow"
+        onClick={async () => {
+          if (await confirmar({ titulo: 'Remover anexo?', texto: anexo.nome, botao: 'Remover', perigo: true })) await db.anexos.delete(anexo.id)
+        }}
+        className="absolute right-1.5 top-1.5 rounded-full bg-superficie/90 p-1.5 text-bloqueado shadow"
       >
         <Trash2 size={14} />
       </button>

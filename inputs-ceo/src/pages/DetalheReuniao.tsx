@@ -3,9 +3,10 @@ import { ChevronDown, FileText, Printer, Share2, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AtaView } from '../components/AtaView'
-import { Cabecalho, SeletorStatus, SeloPrazo, useAviso } from '../components/ui'
+import { Cabecalho, SeletorStatus, SeloPrazo, useAviso, useCompartilhar, useConfirmar } from '../components/ui'
+import { EM_ARTIFACT } from '../lib/ambiente'
 import { db, excluirReuniao, montarAudio, mudarStatus } from '../lib/db'
-import { compartilharTexto, textoAta } from '../lib/exportar'
+import { textoAta } from '../lib/exportar'
 import { ROTULO_ORIGEM } from '../lib/rotulos'
 import type { Input } from '../lib/types'
 import { formatarData, formatarDuracao } from '../lib/util'
@@ -14,6 +15,8 @@ export default function DetalheReuniao() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
   const avisar = useAviso()
+  const confirmar = useConfirmar()
+  const compartilharTexto = useCompartilhar()
   const reuniao = useLiveQuery(() => db.reunioes.get(id).then((r) => r ?? null), [id])
   const inputs =
     useLiveQuery(async () => {
@@ -45,17 +48,23 @@ export default function DetalheReuniao() {
     )
   }
 
-  const compartilhar = async () => {
+  const compartilhar = () => {
     const texto = reuniao.ata
       ? textoAta(reuniao, reuniao.ata, inputs)
       : `PLANO DE AÇÃO — ${reuniao.titulo || 'Reunião'} (${formatarData(reuniao.data, true)})\n\n${inputs
           .map((i) => `• ${i.titulo} — ${i.responsaveis.join(', ') || 'a definir'}${i.prazo ? ` — até ${formatarData(i.prazo)}` : ''}`)
           .join('\n')}`
-    if ((await compartilharTexto(reuniao.titulo || 'Ata', texto)) === 'copiado') avisar('Texto copiado')
+    void compartilharTexto(reuniao.titulo || 'Ata', texto)
   }
 
   const excluir = async () => {
-    if (!confirm('Excluir esta reunião, transcrição e áudio? Os inputs criados a partir dela serão mantidos.')) return
+    const ok = await confirmar({
+      titulo: 'Excluir esta reunião?',
+      texto: 'A ata, a transcrição e o áudio serão apagados. Os inputs criados a partir dela continuam na lista.',
+      botao: 'Excluir',
+      perigo: true,
+    })
+    if (!ok) return
     await excluirReuniao(id)
     avisar('Reunião excluída')
     navigate('/reunioes', { replace: true })
@@ -73,9 +82,11 @@ export default function DetalheReuniao() {
             <button aria-label="Compartilhar" className="rounded-full p-2 hover:bg-linho" onClick={compartilhar}>
               <Share2 size={19} />
             </button>
-            <button aria-label="Imprimir ou salvar PDF" className="rounded-full p-2 hover:bg-linho" onClick={() => window.print()}>
-              <Printer size={19} />
-            </button>
+            {!EM_ARTIFACT && (
+              <button aria-label="Imprimir ou salvar PDF" className="rounded-full p-2 hover:bg-linho" onClick={() => window.print()}>
+                <Printer size={19} />
+              </button>
+            )}
             <button aria-label="Excluir" className="rounded-full p-2 text-bloqueado hover:bg-bloqueado-claro" onClick={excluir}>
               <Trash2 size={19} />
             </button>

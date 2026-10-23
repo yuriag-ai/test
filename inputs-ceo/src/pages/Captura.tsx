@@ -3,7 +3,8 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { FileText, ListChecks, Loader2, Mic, Pause, Play, Send, Square, Star, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { CampoPessoas, useAviso } from '../components/ui'
+import { CampoPessoas, useAviso, useConfirmar } from '../components/ui'
+import { MSG_SEM_IA } from '../lib/ambiente'
 import { suportaGravacao, suportaTranscricao, useCaptura } from '../hooks/useCaptura'
 import { useIA, useListas } from '../hooks/useDados'
 import { processarComIA } from '../lib/api'
@@ -18,6 +19,7 @@ export default function Captura() {
   const { id: idRota } = useParams()
   const navigate = useNavigate()
   const avisar = useAviso()
+  const confirmar = useConfirmar()
   const ia = useIA()
   const { areas, marcas, pessoas, nomes } = useListas()
 
@@ -190,15 +192,15 @@ export default function Captura() {
     }
   }
 
-  const sair = () => {
-    if (gravando && !confirm('A gravação está em andamento. Encerrar e sair?')) return
+  const sair = async () => {
+    if (gravando && !(await confirmar({ titulo: 'Encerrar a gravação?', texto: 'O que foi gravado até agora fica salvo em Reuniões.', botao: 'Encerrar e sair' }))) return
     if (gravando) void parar()
     navigate(reuniaoId && temConteudo ? '/reunioes' : '/')
   }
 
   return (
     <div className="flex min-h-[100dvh] flex-col">
-      <header className="sticky top-0 z-20 flex items-center gap-2 bg-papel/90 px-4 pb-2 pt-[calc(env(safe-area-inset-top)+0.75rem)] backdrop-blur">
+      <header className="sticky top-[env(safe-area-inset-top,0px)] z-20 flex items-center gap-2 bg-papel/90 px-4 pb-2 pt-3 backdrop-blur">
         <button aria-label="Fechar" onClick={sair} className="-ml-2 rounded-full p-2 hover:bg-linho">
           <X size={22} />
         </button>
@@ -314,8 +316,7 @@ export default function Captura() {
             {audioUrl && <audio controls src={audioUrl} className="w-full" />}
             {ia === false && (
               <p className="rounded-xl bg-linho p-3 text-[13px] leading-relaxed text-grafite">
-                A geração de Ata e Plano de Ação precisa da IA configurada no servidor (ANTHROPIC_API_KEY). A captura fica salva em
-                Reuniões.
+                A geração de Ata e Plano de Ação precisa da IA. {MSG_SEM_IA} A captura fica salva em Reuniões.
               </p>
             )}
             <button className="botao-primario w-full py-3.5" disabled={!ia || Boolean(processando)} onClick={() => processar('ata')}>
@@ -350,7 +351,7 @@ export default function Captura() {
             <button
               onClick={parar}
               aria-label="Encerrar gravação"
-              className="flex h-20 w-20 items-center justify-center rounded-full bg-bloqueado text-white shadow-flutuante active:scale-95"
+              className="flex h-20 w-20 items-center justify-center rounded-full bg-bloqueado text-papel shadow-flutuante active:scale-95"
             >
               <Square size={28} fill="currentColor" />
             </button>
@@ -367,7 +368,7 @@ export default function Captura() {
 function BotaoControle({ rotulo, onClick, children }: { rotulo: string; onClick: () => void; children: React.ReactNode }) {
   return (
     <button onClick={onClick} className="flex w-20 flex-col items-center gap-1 text-[12px] font-medium text-grafite">
-      <span className="flex h-12 w-12 items-center justify-center rounded-full border border-borda bg-white">{children}</span>
+      <span className="flex h-12 w-12 items-center justify-center rounded-full border border-borda bg-superficie">{children}</span>
       {rotulo}
     </button>
   )
@@ -443,7 +444,7 @@ function Interruptor({
         <div className="text-[12px] text-nevoa">{descricao}</div>
       </div>
       <input type="checkbox" className="peer sr-only" checked={ligado} disabled={desabilitado} onChange={(e) => aoMudar(e.target.checked)} />
-      <span className="relative h-7 w-12 rounded-full bg-borda transition peer-checked:bg-tinta after:absolute after:left-0.5 after:top-0.5 after:h-6 after:w-6 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-5" />
+      <span className="relative h-7 w-12 rounded-full bg-borda transition peer-checked:bg-tinta after:absolute after:left-0.5 after:top-0.5 after:h-6 after:w-6 after:rounded-full after:bg-superficie after:shadow after:transition peer-checked:after:translate-x-5" />
     </label>
   )
 }

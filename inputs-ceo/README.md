@@ -62,6 +62,14 @@ npm test          # importador, leitura de materiais, repetidos e contrato com a
 npm run build     # typecheck + build de produção
 ```
 
+## Link de teste (claude.ai)
+
+`npm run build:artifact -- <saida.html>` gera uma versão de página única para publicar como Artifact no claude.ai. Nela:
+- a IA roda pelo recurso `sample` (na conta de quem abre o link) e os arquivos saem pelo recurso `downloads`;
+- os rótulos são neutros, sem o nome da empresa, e há exemplos fictícios que podem ser removidos;
+- a gravação pelo microfone, os PDFs e a impressão ficam desativados, porque a página roda num quadro restrito;
+- os dados ficam só no navegador de quem testa.
+
 ## Deploy (Vercel)
 
 1. Importe o repositório na Vercel e defina **Root Directory = `inputs-ceo`**.

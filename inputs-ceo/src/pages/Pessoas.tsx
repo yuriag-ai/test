@@ -3,9 +3,9 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { ChevronDown, MessageCircle, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Cabecalho, PontoStatus, SeloPrazo, Vazio, useAviso } from '../components/ui'
+import { Cabecalho, PontoStatus, SeloPrazo, Vazio, useCompartilhar } from '../components/ui'
 import { db } from '../lib/db'
-import { compartilharTexto, textoPendencias } from '../lib/exportar'
+import { textoPendencias } from '../lib/exportar'
 import type { Input } from '../lib/types'
 import { diasAte } from '../lib/util'
 
@@ -18,7 +18,7 @@ interface Resumo {
 }
 
 export default function Pessoas() {
-  const avisar = useAviso()
+  const compartilhar = useCompartilhar()
   const inputs = useLiveQuery(() => db.inputs.toArray(), [])
   const pessoas = useLiveQuery(() => db.pessoas.toArray(), []) ?? []
   const [aberta, setAberta] = useState<string | null>(null)
@@ -40,10 +40,7 @@ export default function Pessoas() {
     return [...mapa.values()].sort((a, b) => b.abertos.length - a.abertos.length || a.nome.localeCompare(b.nome, 'pt-BR'))
   }, [inputs, pessoas])
 
-  const cobrar = async (r: Resumo) => {
-    const resultado = await compartilharTexto(`Pendências — ${r.nome}`, textoPendencias(r.nome, r.abertos))
-    if (resultado === 'copiado') avisar('Mensagem copiada — cole no WhatsApp')
-  }
+  const cobrar = (r: Resumo) => void compartilhar(`Pendências — ${r.nome}`, textoPendencias(r.nome, r.abertos))
 
   return (
     <>

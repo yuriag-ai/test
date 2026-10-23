@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AtaView } from '../components/AtaView'
 import { RevisaoAcoes, paraRevisao } from '../components/RevisaoAcoes'
-import { Cabecalho, CampoPessoas, Folha, useAviso } from '../components/ui'
+import { Cabecalho, CampoPessoas, Folha, useAviso, useConfirmar } from '../components/ui'
+import { CEO, EM_ARTIFACT, MSG_SEM_IA } from '../lib/ambiente'
 import { useIA, useListas } from '../hooks/useDados'
 import { processarComIA } from '../lib/api'
 import { ACEITOS, LIMITE_ANEXOS_BYTES, lerArquivo, tamanhoAnexos } from '../lib/arquivos'
@@ -56,13 +57,14 @@ function rascunhoVazio(): Rascunho {
 
 const EXEMPLO = `Cole aqui a transcrição, o resumo ou a lista. Exemplos:
 
-1. Nome: pergunta ou pedido do Alexandre
+1. Nome: pergunta ou pedido ${CEO.de}
 2. Pedido ou assunto | Responsável
 3. Relatório para 05.11. Enviado pela Ana.`
 
 export default function Importar() {
   const navigate = useNavigate()
   const avisar = useAviso()
+  const confirmar = useConfirmar()
   const ia = useIA()
   const { areas, marcas, pessoas } = useListas()
   const [r, setR] = useState<Rascunho>(rascunhoVazio)
@@ -143,11 +145,11 @@ export default function Importar() {
     }
 
     if (!ia) {
-      if (r.anexos.length) return setErro('Para ler PDFs e fotos é preciso configurar a IA no servidor (ANTHROPIC_API_KEY).')
+      if (r.anexos.length) return setErro(`Para ler PDFs e fotos é preciso a IA. ${MSG_SEM_IA}`)
       const acoes = interpretarLocalmente(r.texto, tipo, opcoes)
       if (!acoes.length) {
         return setErro(
-          'Sem a IA configurada, só consigo ler listas e seções de "próximos passos" / "ações". Este material precisa da IA (ANTHROPIC_API_KEY).',
+          `Sem a IA, só consigo ler listas e seções de "próximos passos" / "ações". Este material precisa da IA. ${MSG_SEM_IA}`,
         )
       }
       const primeiraLinha = r.texto.trim().split('\n')[0].replace(/^#+\s*|\*\*/g, '').trim()
@@ -259,8 +261,11 @@ export default function Importar() {
     navigate(reuniaoId ? `/reunioes/${reuniaoId}` : '/', { replace: true })
   }
 
-  const recomecar = () => {
-    if ((r.acoes.length || r.texto.trim()) && !confirm('Descartar este material e a revisão?')) return
+  const recomecar = async () => {
+    if (r.acoes.length || r.texto.trim()) {
+      const ok = await confirmar({ titulo: 'Descartar este material?', texto: 'O texto, os arquivos e a revisão serão apagados.', botao: 'Descartar', perigo: true })
+      if (!ok) return
+    }
     setR(rascunhoVazio())
     setErro(null)
     setErrosArquivo([])
@@ -322,7 +327,7 @@ export default function Importar() {
             <div className="flex items-center gap-3 rounded-2xl bg-couro-claro p-3.5">
               <Sparkles size={20} className="shrink-0 text-couro" />
               <p className="flex-1 text-[13px] leading-snug text-couro-escuro">A IA pode melhorar títulos, áreas e responsáveis.</p>
-              <button className="botao rounded-lg bg-couro px-3 py-2 text-sm text-white" onClick={refinarLista} disabled={processando}>
+              <button className="botao rounded-lg bg-couro px-3 py-2 text-sm text-papel" onClick={refinarLista} disabled={processando}>
                 {processando ? <Loader2 size={16} className="animate-spin" /> : 'Refinar'}
               </button>
             </div>
@@ -377,7 +382,7 @@ export default function Importar() {
             </div>
           )}
           {r.texto ? (
-            <div className="whitespace-pre-wrap rounded-xl bg-white p-3 text-[13px] leading-relaxed text-grafite">{r.texto}</div>
+            <div className="whitespace-pre-wrap rounded-xl bg-superficie p-3 text-[13px] leading-relaxed text-grafite">{r.texto}</div>
           ) : (
             <p className="text-sm text-nevoa">Sem texto colado.</p>
           )}
@@ -442,7 +447,7 @@ export default function Importar() {
           <div className="space-y-2">
             <div className="flex flex-wrap gap-1.5">
               {r.anexos.map((a, i) => (
-                <span key={`${a.nome}-${i}`} className="chip border border-borda bg-white py-1.5">
+                <span key={`${a.nome}-${i}`} className="chip border border-borda bg-superficie py-1.5">
                   {a.tipo === 'application/pdf' ? <FileText size={13} /> : <ImageIcon size={13} />}
                   <span className="max-w-[12rem] truncate">{a.nome}</span>
                   <button aria-label={`Remover ${a.nome}`} onClick={() => atualizar({ anexos: r.anexos.filter((_, j) => j !== i) })}>
@@ -487,7 +492,7 @@ export default function Importar() {
                     onClick={() => atualizar({ tipo: r.tipo === t ? null : t })}
                     className={clsx(
                       'rounded-xl border px-2 py-2.5 text-[13px] font-medium leading-tight',
-                      tipo === t ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-white text-grafite',
+                      tipo === t ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-superficie text-grafite',
                     )}
                   >
                     {ROTULO_MATERIAL[t]}
@@ -547,13 +552,15 @@ export default function Importar() {
         )}
         {ia === false && temMaterial && tipo !== 'lista' && (
           <p className="text-center text-[12px] leading-relaxed text-nevoa">
-            IA não configurada: só listas e seções de "próximos passos" serão lidas.
+            Sem IA nesta visualização: só listas e seções de "próximos passos" serão lidas.
           </p>
         )}
 
-        <Link to="/captura" className="flex items-center justify-center gap-2 py-2 text-[13px] font-medium text-grafite">
-          <Mic size={15} /> Prefere gravar aqui? Gravar no celular
-        </Link>
+        {!EM_ARTIFACT && (
+          <Link to="/captura" className="flex items-center justify-center gap-2 py-2 text-[13px] font-medium text-grafite">
+            <Mic size={15} /> Prefere gravar aqui? Gravar no celular
+          </Link>
+        )}
       </div>
     </>
   )
@@ -563,7 +570,7 @@ function OpcaoGerar({ ativa, titulo, texto, onClick }: { ativa: boolean; titulo:
   return (
     <button
       onClick={onClick}
-      className={clsx('rounded-2xl border p-3 text-left transition', ativa ? 'border-tinta bg-white ring-1 ring-tinta' : 'border-borda bg-white')}
+      className={clsx('rounded-2xl border p-3 text-left transition', ativa ? 'border-tinta bg-superficie ring-1 ring-tinta' : 'border-borda bg-superficie')}
     >
       <div className="flex items-center gap-2 text-sm font-medium">
         <span className={clsx('h-4 w-4 rounded-full border-2', ativa ? 'border-[5px] border-tinta' : 'border-borda')} />

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Cabecalho, CampoLista, CampoPessoas, useAviso } from '../components/ui'
 import { useListas } from '../hooks/useDados'
+import { CEO } from '../lib/ambiente'
 import { criarInput } from '../lib/db'
 import { ORIGENS, PRIORIDADES } from '../lib/rotulos'
 import type { Origem, Prioridade } from '../lib/types'
@@ -40,7 +41,9 @@ export default function NovoInput() {
       <Cabecalho titulo="Novo input" voltar />
       <div className="space-y-5 px-4 pb-8">
         <div>
-          <label className="rotulo" htmlFor="descricao">O que o Alexandre pediu *</label>
+          <label className="rotulo" htmlFor="descricao">
+            O que {CEO.nome} pediu *
+          </label>
           <textarea
             id="descricao"
             autoFocus
@@ -100,7 +103,7 @@ export default function NovoInput() {
                 onClick={() => setPrioridade(p.valor)}
                 className={clsx(
                   'flex-1 rounded-xl border py-2.5 text-sm font-medium',
-                  prioridade === p.valor ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-white text-grafite',
+                  prioridade === p.valor ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-superficie text-grafite',
                 )}
               >
                 {p.rotulo}

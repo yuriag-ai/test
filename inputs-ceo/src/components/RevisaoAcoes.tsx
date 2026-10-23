@@ -8,7 +8,7 @@ import { PRIORIDADES, ROTULO_STATUS } from '../lib/rotulos'
 import { maisParecido, pessoaConhecida, sugerirPessoa } from '../lib/similaridade'
 import type { AcaoProposta, AcaoRevisavel, Input, Prioridade } from '../lib/types'
 import { formatarData, novoId, unicos } from '../lib/util'
-import { AreaTexto, CampoLista, CampoPessoas, Folha } from './ui'
+import { AreaTexto, CampoLista, CampoPessoas, Folha, useConfirmar } from './ui'
 
 export type { AcaoRevisavel }
 
@@ -84,6 +84,7 @@ export function RevisaoAcoes({ acoes, aoMudar }: { acoes: AcaoRevisavel[]; aoMud
   const [selecionando, setSelecionando] = useState(false)
   const [selecionados, setSelecionados] = useState<Set<string>>(new Set())
   const [folhaLote, setFolhaLote] = useState(false)
+  const confirmar = useConfirmar()
 
   const atualizar = (chave: string, mudancas: Partial<AcaoRevisavel>) =>
     aoMudar(acoes.map((a) => (a.chave === chave ? { ...a, ...mudancas } : a)))
@@ -160,7 +161,7 @@ export function RevisaoAcoes({ acoes, aoMudar }: { acoes: AcaoRevisavel[]; aoMud
               onClick={() => setFiltro(valor)}
               className={clsx(
                 'shrink-0 rounded-full border px-3 py-1.5 text-[13px] font-medium',
-                filtro === valor ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-white text-grafite',
+                filtro === valor ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-superficie text-grafite',
                 valor === 'atencao' && filtro !== valor && 'text-pendente',
               )}
             >
@@ -240,8 +241,9 @@ export function RevisaoAcoes({ acoes, aoMudar }: { acoes: AcaoRevisavel[]; aoMud
               aria-label="Remover selecionados"
               disabled={!selecionados.size}
               className="rounded-xl p-2 text-papel disabled:opacity-40"
-              onClick={() => {
-                if (!confirm(`Remover ${selecionados.size} itens da revisão?`)) return
+              onClick={async () => {
+                const ok = await confirmar({ titulo: `Remover ${selecionados.size} itens da revisão?`, botao: 'Remover', perigo: true })
+                if (!ok) return
                 remover(selecionados)
                 sairSelecao()
               }}
@@ -320,7 +322,7 @@ function ItemRevisao({
           <span
             className={clsx(
               'mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2',
-              selecionado ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-white',
+              selecionado ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-superficie',
             )}
           >
             {selecionado && <Check size={14} strokeWidth={3} />}
@@ -331,7 +333,7 @@ function ItemRevisao({
             onClick={() => aoMudar({ incluir: !a.incluir })}
             className={clsx(
               'mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2',
-              a.incluir ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-white',
+              a.incluir ? 'border-tinta bg-tinta text-papel' : 'border-borda bg-superficie',
             )}
           >
             {a.incluir && <Check size={15} strokeWidth={3} />}
@@ -356,7 +358,7 @@ function ItemRevisao({
           <div className="mt-1 flex flex-wrap items-center gap-1.5">
             {a.responsaveis.length ? (
               a.responsaveis.map((r) => (
-                <span key={r} className={clsx('chip', novos.has(r) ? 'border border-dashed border-couro/60 bg-white' : 'bg-linho')}>
+                <span key={r} className={clsx('chip', novos.has(r) ? 'border border-dashed border-couro/60 bg-superficie' : 'bg-linho')}>
                   {r}
                   {novos.has(r) && <span className="text-[10px] font-semibold uppercase text-couro">novo</span>}
                 </span>
@@ -543,7 +545,7 @@ function Alerta({
           <button
             key={a.rotulo}
             onClick={a.onClick}
-            className="flex items-center gap-1 rounded-lg border border-black/10 bg-white px-2.5 py-1.5 text-[12px] font-medium"
+            className="flex items-center gap-1 rounded-lg border border-tinta/10 bg-superficie px-2.5 py-1.5 text-[12px] font-medium"
           >
             {a.icone}
             {a.rotulo}
