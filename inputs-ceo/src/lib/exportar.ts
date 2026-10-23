@@ -18,7 +18,7 @@ export async function salvarArquivo(blob: Blob, nome: string): Promise<void> {
     } catch (erro) {
       const codigo = (erro as { code?: string }).code
       if (codigo === 'declined') return
-      if (codigo === 'rejected_extension') throw new Error('Este tipo de arquivo não pode ser baixado aqui.')
+      if (codigo === 'rejected_extension' || codigo === 'extension_not_enabled') throw new Error('Este formato de arquivo não está disponível nesta visualização.')
       throw new Error('Não foi possível salvar o arquivo. Tente de novo.')
     }
     return

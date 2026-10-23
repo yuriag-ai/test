@@ -1,6 +1,9 @@
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import type { IncomingMessage, ServerResponse } from 'node:http'
+import { fileURLToPath } from 'node:url'
+
+const vazio = fileURLToPath(new URL('./src/lib/pdf/vazio.ts', import.meta.url))
 
 /** Serve as funções de /api durante o `npm run dev`, com o mesmo código usado na Vercel. */
 function apiLocal(): Plugin {
@@ -36,5 +39,8 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react(), apiLocal()],
     server: { port: 5174 },
+    resolve: { alias: { html2canvas: vazio, dompurify: vazio, canvg: vazio } },
+    // O link de teste é um único HTML: o módulo de PDF (carregado sob demanda) entra no mesmo arquivo.
+    build: process.env.VITE_ALVO === 'artifact' ? { rollupOptions: { output: { inlineDynamicImports: true } } } : {},
   }
 })

@@ -1,11 +1,11 @@
 import clsx from 'clsx'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ChevronDown, MessageCircle, Users } from 'lucide-react'
+import { ChevronDown, FileDown, MessageCircle, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CORES_RODIZIO, Cabecalho, PontoStatus, SeloPrazo, Vazio, useCompartilhar } from '../components/ui'
+import { CORES_RODIZIO, Cabecalho, PontoStatus, SeloPrazo, Vazio, useAviso, useCompartilhar } from '../components/ui'
 import { db } from '../lib/db'
-import { textoPendencias } from '../lib/exportar'
+import { salvarArquivo, textoPendencias } from '../lib/exportar'
 import type { Input } from '../lib/types'
 import { diasAte } from '../lib/util'
 
@@ -19,6 +19,7 @@ interface Resumo {
 
 export default function Pessoas() {
   const compartilhar = useCompartilhar()
+  const avisar = useAviso()
   const inputs = useLiveQuery(() => db.inputs.toArray(), [])
   const pessoas = useLiveQuery(() => db.pessoas.toArray(), []) ?? []
   const [aberta, setAberta] = useState<string | null>(null)
@@ -41,6 +42,23 @@ export default function Pessoas() {
   }, [inputs, pessoas])
 
   const cobrar = (r: Resumo) => void compartilhar(`Pendências — ${r.nome}`, textoPendencias(r.nome, r.abertos))
+
+  const baixarPdf = async (r: Resumo) => {
+    const porPrazo = [...r.abertos].sort((a, b) => (a.prazo || '9999').localeCompare(b.prazo || '9999') || a.numero - b.numero)
+    try {
+      const { gerarPdfInputs, nomeArquivoPdf } = await import('../lib/pdf')
+      const blob = gerarPdfInputs({
+        sobrelinha: 'Escritório do CEO',
+        titulo: 'Pendências de',
+        acento: r.nome,
+        descricao: [`${r.abertos.length} em aberto`, r.area, 'ordenado por prazo'].filter(Boolean).join(' · '),
+        grupos: [['', porPrazo]],
+      })
+      await salvarArquivo(blob, nomeArquivoPdf(`pendencias ${r.nome}`))
+    } catch (erro) {
+      avisar((erro as Error).message)
+    }
+  }
 
   return (
     <>
@@ -102,9 +120,14 @@ export default function Pessoas() {
                       </ul>
                     )}
                     {r.abertos.length > 0 && (
-                      <button className="botao-secundario mt-2 w-full" onClick={() => cobrar(r)}>
-                        <MessageCircle size={17} /> Pedir status por WhatsApp
-                      </button>
+                      <div className="mt-2 flex gap-2">
+                        <button className="botao-secundario flex-1" onClick={() => cobrar(r)}>
+                          <MessageCircle size={17} /> Pedir status por WhatsApp
+                        </button>
+                        <button aria-label={`Baixar PDF das pendências de ${r.nome}`} className="botao-secundario px-3.5" onClick={() => void baixarPdf(r)}>
+                          <FileDown size={17} /> PDF
+                        </button>
+                      </div>
                     )}
                   </div>
                 )}

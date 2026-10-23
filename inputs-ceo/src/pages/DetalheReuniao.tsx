@@ -1,12 +1,11 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ChevronDown, FileText, Printer, Share2, Trash2 } from 'lucide-react'
+import { ChevronDown, FileDown, FileText, Share2, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AtaView, TituloDocumento } from '../components/AtaView'
 import { Cabecalho, Secao, SeletorStatus, SeloPrazo, useAviso, useCompartilhar, useConfirmar } from '../components/ui'
-import { EM_ARTIFACT } from '../lib/ambiente'
 import { db, excluirReuniao, montarAudio, mudarStatus } from '../lib/db'
-import { textoAta } from '../lib/exportar'
+import { salvarArquivo, textoAta } from '../lib/exportar'
 import { ROTULO_ORIGEM } from '../lib/rotulos'
 import type { Input } from '../lib/types'
 import { formatarData, formatarDuracao } from '../lib/util'
@@ -70,6 +69,16 @@ export default function DetalheReuniao() {
     navigate('/reunioes', { replace: true })
   }
 
+  const baixarPdf = async () => {
+    try {
+      const { gerarPdfReuniao, nomeArquivoPdf } = await import('../lib/pdf')
+      const nome = `${reuniao.ata ? 'ata' : 'plano de ação'} ${reuniao.titulo || reuniao.ata?.titulo || 'reunião'}`
+      await salvarArquivo(gerarPdfReuniao(reuniao, inputs), nomeArquivoPdf(nome, reuniao.data))
+    } catch (erro) {
+      avisar((erro as Error).message)
+    }
+  }
+
   const plano = <PlanoDeAcao inputs={inputs} reuniaoId={id} />
 
   return (
@@ -82,11 +91,9 @@ export default function DetalheReuniao() {
             <button aria-label="Compartilhar" className="rounded-full p-2 hover:bg-linho" onClick={compartilhar}>
               <Share2 size={19} />
             </button>
-            {!EM_ARTIFACT && (
-              <button aria-label="Imprimir ou salvar PDF" className="rounded-full p-2 hover:bg-linho" onClick={() => window.print()}>
-                <Printer size={19} />
-              </button>
-            )}
+            <button aria-label="Baixar PDF" className="botao-fantasma px-2.5 py-1.5 text-sm" onClick={baixarPdf}>
+              <FileDown size={17} /> PDF
+            </button>
             <button aria-label="Excluir" className="rounded-full p-2 text-perigo hover:bg-ruim-claro" onClick={excluir}>
               <Trash2 size={19} />
             </button>

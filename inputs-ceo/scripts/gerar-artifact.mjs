@@ -2,7 +2,8 @@
 // sem <!doctype>/<html>/<head>/<body> (o claude.ai envolve a página no próprio esqueleto).
 // Uso: node scripts/gerar-artifact.mjs <saida.html> [--carga <inputs.json>]
 //      (depois de `VITE_ALVO=artifact vite build --outDir dist-artifact`)
-// --carga embute inputs iniciais ({id, inputs: [...]}) só no HTML gerado; o arquivo de dados fica fora do repositório.
+// --carga embute inputs iniciais ({id, inputs: [...]} ou {lotes: [{id, reuniao?, inputs}]}) só no HTML gerado;
+// cada lote é aplicado uma vez por navegador. O arquivo de dados fica fora do repositório.
 import fs from 'node:fs'
 import path from 'node:path'
 

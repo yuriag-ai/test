@@ -1,13 +1,13 @@
 import clsx from 'clsx'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ClipboardList, Download, FileUp, Mic, MoreHorizontal, Paperclip, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
+import { ClipboardList, Download, FileDown, FileUp, Mic, MoreHorizontal, Paperclip, Plus, Search, SlidersHorizontal, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Cabecalho, Folha, SeletorStatus, SeloPrazo, SeloPrioridade, Vazio, useAviso } from '../components/ui'
 import { useListas } from '../hooks/useDados'
 import { CEO, EM_ARTIFACT } from '../lib/ambiente'
 import { db, mudarStatus } from '../lib/db'
-import { exportarCSV } from '../lib/exportar'
+import { exportarCSV, salvarArquivo } from '../lib/exportar'
 import { ORIGENS, ROTULO_ORIGEM, ROTULO_STATUS, STATUS } from '../lib/rotulos'
 import type { Input, Origem, Status } from '../lib/types'
 import { diasAte, formatarData, normalizar } from '../lib/util'
@@ -42,6 +42,15 @@ function lerFiltros(): Filtros {
   } catch {
     return FILTROS_PADRAO
   }
+}
+
+const ROTULO_AGRUPAR: Record<Agrupar, string> = {
+  nenhum: 'Nada',
+  area: 'Área',
+  responsavel: 'Responsável',
+  status: 'Status',
+  marca: 'Marca',
+  data: 'Data do input',
 }
 
 const aberto = (i: Input) => i.status !== 'concluido'
@@ -114,6 +123,33 @@ export default function Inputs() {
 
   const grupos = useMemo(() => agrupar(filtrados, filtros.agrupar), [filtrados, filtros.agrupar])
   const filtrosAtivos = filtros.areas.length + filtros.marcas.length + filtros.responsaveis.length + filtros.origens.length
+
+  /** PDF do que está na tela (filtros, busca e agrupamento); sem resultados, de todos os inputs. */
+  const baixarPdf = async () => {
+    setMenu(false)
+    const comFiltro = filtrados.length > 0
+    const descricao = [
+      comFiltro ? RAPIDOS.find((r) => r.valor === filtros.rapido)!.rotulo : 'Todos os inputs',
+      ...(comFiltro ? [...filtros.responsaveis, ...filtros.areas, ...filtros.marcas, ...filtros.origens.map((o) => ROTULO_ORIGEM[o])] : []),
+      comFiltro && busca.trim() && `busca “${busca.trim()}”`,
+      filtros.agrupar !== 'nenhum' && `agrupado por ${ROTULO_AGRUPAR[filtros.agrupar].toLowerCase()}`,
+    ]
+      .filter(Boolean)
+      .join(' · ')
+    try {
+      const { gerarPdfInputs, nomeArquivoPdf } = await import('../lib/pdf')
+      const blob = gerarPdfInputs({
+        sobrelinha: 'Escritório do CEO',
+        titulo: 'Inputs',
+        acento: 'do CEO',
+        descricao,
+        grupos: comFiltro ? grupos : agrupar([...lista].sort((a, b) => b.numero - a.numero), filtros.agrupar),
+      })
+      await salvarArquivo(blob, nomeArquivoPdf('inputs-ceo'))
+    } catch (erro) {
+      avisar((erro as Error).message)
+    }
+  }
 
   if (inputs && inputs.length === 0) {
     return (
@@ -247,6 +283,9 @@ export default function Inputs() {
           <Link to="/importar" className="botao-secundario w-full justify-start">
             <FileUp size={18} /> Importar transcrição, resumo ou lista
           </Link>
+          <button className="botao-secundario w-full justify-start" onClick={() => void baixarPdf()}>
+            <FileDown size={18} /> Baixar PDF ({filtrados.length || lista.length} itens)
+          </button>
           <button
             className="botao-secundario w-full justify-start"
             onClick={() => {
@@ -263,14 +302,7 @@ export default function Inputs() {
         <div className="space-y-5">
           <GrupoOpcoes
             rotulo="Agrupar por"
-            opcoes={[
-              ['nenhum', 'Nada'],
-              ['area', 'Área'],
-              ['responsavel', 'Responsável'],
-              ['status', 'Status'],
-              ['marca', 'Marca'],
-              ['data', 'Data do input'],
-            ]}
+            opcoes={Object.entries(ROTULO_AGRUPAR)}
             selecionados={[filtros.agrupar]}
             aoTocar={(v) => setFiltros((f) => ({ ...f, agrupar: v as Agrupar }))}
           />
