@@ -1,5 +1,5 @@
 import { EM_ARTIFACT } from './ambiente'
-import { adicionarNota, criarInputs, criarReuniao, db, type NovoInput } from './db'
+import { adicionarNota, criarInputs, criarReuniao, db, excluirInput, type NovoInput } from './db'
 import type { Reuniao } from './types'
 import { normalizar } from './util'
 
@@ -20,6 +20,8 @@ interface Lote {
   inputs: ItemCarga[]
   /** Correções de texto nos inputs já carregados (ex.: nome escrito errado), aplicadas uma vez. */
   correcoes?: { de: string; para: string }[]
+  /** Inputs a excluir, identificados pelo título ou pela descrição, aplicado uma vez. */
+  remover?: string[]
 }
 
 /** Formato antigo (um lote só) ou vários lotes, para acrescentar inputs sem repetir os já carregados. */
@@ -60,6 +62,7 @@ async function aplicarLote(lote: Lote) {
   if (await db.config.get(chave)) return
   await db.config.put({ chave, valor: true })
   if (lote.correcoes?.length) await corrigirTextos(lote.correcoes)
+  if (lote.remover?.length) await removerInputs(lote.remover)
 
   // Não duplica o que a pessoa já tenha importado por conta própria
   const existentes = new Set((await db.inputs.toArray()).map((i) => normalizar(i.descricao)))
@@ -81,6 +84,14 @@ async function corrigirTextos(correcoes: { de: string; para: string }[]) {
     i.contexto = trocar(i.contexto)
     i.observacoes = trocar(i.observacoes)
   })
+}
+
+async function removerInputs(textos: string[]) {
+  const alvos = new Set(textos.map(normalizar))
+  const inputs = await db.inputs.toArray()
+  for (const i of inputs) {
+    if (alvos.has(normalizar(i.titulo)) || alvos.has(normalizar(i.descricao))) await excluirInput(i.id)
+  }
 }
 
 /** Remove os exemplos fictícios da primeira versão do link de teste, se ainda estiverem no navegador. */
