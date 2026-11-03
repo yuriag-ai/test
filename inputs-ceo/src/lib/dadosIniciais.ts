@@ -18,6 +18,8 @@ interface Lote {
   id: string
   reuniao?: Partial<Reuniao>
   inputs: ItemCarga[]
+  /** Correções de texto nos inputs já carregados (ex.: nome escrito errado), aplicadas uma vez. */
+  correcoes?: { de: string; para: string }[]
 }
 
 /** Formato antigo (um lote só) ou vários lotes, para acrescentar inputs sem repetir os já carregados. */
@@ -57,6 +59,7 @@ async function aplicarLote(lote: Lote) {
   const chave = `carga:${lote.id}`
   if (await db.config.get(chave)) return
   await db.config.put({ chave, valor: true })
+  if (lote.correcoes?.length) await corrigirTextos(lote.correcoes)
 
   // Não duplica o que a pessoa já tenha importado por conta própria
   const existentes = new Set((await db.inputs.toArray()).map((i) => normalizar(i.descricao)))
@@ -68,6 +71,16 @@ async function aplicarLote(lote: Lote) {
     const nota = novos[i].nota
     if (nota) await adicionarNota(input.id, nota)
   }
+}
+
+async function corrigirTextos(correcoes: { de: string; para: string }[]) {
+  const trocar = (texto: string) => correcoes.reduce((t, c) => t.split(c.de).join(c.para), texto)
+  await db.inputs.toCollection().modify((i) => {
+    i.titulo = trocar(i.titulo)
+    i.descricao = trocar(i.descricao)
+    i.contexto = trocar(i.contexto)
+    i.observacoes = trocar(i.observacoes)
+  })
 }
 
 /** Remove os exemplos fictícios da primeira versão do link de teste, se ainda estiverem no navegador. */
